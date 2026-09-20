@@ -130,7 +130,7 @@ const JoinUs = () => {
 
         {/* ── Hero ── */}
         <div className="text-center max-w-4xl mx-auto mb-24">
-          <motion.div
+          {/*<motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-5 py-2 rounded-full text-sm font-bold mb-8 transition-colors shadow-sm border border-gray-300 dark:border-gray-700"
@@ -139,6 +139,21 @@ const JoinUs = () => {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-500 dark:bg-gray-400"></span>
             </span>
             Recruitment is CLOSED
+          </motion.div>*/}
+
+          <motion.div
+          initial={{ opacity: 0, y: -20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 text-[#8b1832] dark:text-rose-400 px-5 py-2 rounded-full text-sm font-bold mb-8 transition-colors shadow-sm border border-rose-200 dark:border-rose-900/50"
+          >
+            <span className="relative flex h-3 w-3">
+          {/* Cercul care pulsează în spate (efectul de ping) */}
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#8b1832] dark:bg-rose-400 opacity-75"></span>
+    
+          {/* Cercul solid din față */}
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-[#8b1832] dark:bg-rose-500"></span>
+            </span>
+            Recruitment is OPEN
           </motion.div>
 
           <motion.h1
