@@ -1,7 +1,20 @@
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 
 const WhatIsBest = () => {
+  // Referința pentru a știi exact unde se află timeline-ul pe ecran
+  const containerRef = useRef(null);
+  
+  // Urmărim progresul scroll-ului relativ la acest container
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 60%", "end 60%"] // Animația pornește când top-ul atinge 60% din ecran și se termină la final
+  });
+
+  // Transformăm progresul (de la 0 la 1) într-o înălțime (de la 0% la 100%)
+  const heightProgress = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
   return (
     <section className="py-24 relative bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
 
@@ -32,27 +45,30 @@ const WhatIsBest = () => {
           />
         </div>
 
-        {/* Timeline */}
-        <div className="relative">
+        {/* Timeline Container - Aici atașăm ref-ul pentru scroll */}
+        <div className="relative" ref={containerRef}>
 
-          {/* Vertical spine */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#8b1832] via-[#8b1832]/50 to-transparent -translate-x-1/2 hidden md:block" />
+          {/* --- SCROLL-LINKED SPINE --- */}
+          {/* Șina de fundal (inactivă) */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gray-200 dark:bg-gray-800 -translate-x-1/2 hidden md:block" />
+          
+          {/* Șina activă care se umple la scroll */}
+          <motion.div 
+            style={{ height: heightProgress }}
+            className="absolute left-1/2 top-0 w-[2px] bg-gradient-to-b from-[#8b1832] to-rose-500 -translate-x-1/2 hidden md:block z-20 origin-top"
+          >
+            {/* Punctul care se plimbă mereu la capătul de jos al liniei */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-4 h-4 bg-white dark:bg-gray-900 border-[3px] border-[#8b1832] dark:border-rose-500 rounded-full shadow-[0_0_15px_rgba(225,29,72,0.6)]" />
+          </motion.div>
+          {/* --------------------------- */}
 
           {/* ── Block 1: logo left, text right ── */}
           <div className="relative grid grid-cols-1 md:grid-cols-[1fr_40px_1fr] gap-0 pb-20 md:pb-28">
 
-            {/* Dot */}
-            <div className="hidden md:flex justify-center pt-2 items-start">
-              <motion.div
-                initial={{ scale: 0 }}
-                whileInView={{ scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="w-3.5 h-3.5 rounded-full bg-[#8b1832] ring-2 ring-[#8b1832]/30 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900"
-              />
-            </div>
+            {/* Am înlocuit punctul static vechi cu un div gol doar pentru a păstra grid-ul corect */}
+            <div className="hidden md:block"></div>
 
-            {/* Left: logo - Acum mai mare (max-w-md) */}
+            {/* Left: logo */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -72,7 +88,7 @@ const WhatIsBest = () => {
               </p>
             </motion.div>
 
-            {/* Right: text - Scurtat pentru impact */}
+            {/* Right: text */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -103,18 +119,10 @@ const WhatIsBest = () => {
           {/* ── Block 2: text left, logo right ── */}
           <div className="relative grid grid-cols-1 md:grid-cols-[1fr_40px_1fr] gap-0">
 
-            {/* Dot */}
-            <div className="hidden md:flex justify-center pt-2 items-start">
-              <motion.div
-                initial={{ scale: 0 }}
-                whileInView={{ scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="w-3.5 h-3.5 rounded-full bg-[#8b1832] ring-2 ring-[#8b1832]/30 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-900"
-              />
-            </div>
+            {/* Spațiu gol pentru track */}
+            <div className="hidden md:block"></div>
 
-            {/* Left: text - Scurtat pentru impact */}
+            {/* Left: text */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -140,7 +148,7 @@ const WhatIsBest = () => {
               </p>
             </motion.div>
 
-            {/* Right: logo & ALIGNED KINETIC ARROW BUTTON - Acum mai mare (max-w-md) */}
+            {/* Right: logo */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
