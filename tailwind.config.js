@@ -1,12 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class', // <-- Adaugă linia asta!
+  darkMode: 'class', 
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {fontFamily: {
+        sans: ['Jost', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

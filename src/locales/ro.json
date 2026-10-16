@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "home": "Acasă",
+    "events": "Evenimente",
+    "departments": "Departamente",
+    "management": "Conducere",
+    "partners": "Parteneri",
+    "faq": "Întrebări Frecvente",
+    "join": "Alătură-te!"
+  },
+
+
+  "joinUs": {
+    "pageTitle": "Alătură-te! | BEST Brașov",
+    "hero": {
+      "badgeOpen": "Recrutările sunt",
+      "badgeOpenStrong": "DESCHISE",
+      "badgeClosed": "Recrutările sunt ÎNCHISE",
+      "title1": "Nu fi doar un simplu student.",
+      "title2": "Fii the BEST.",
+      "subtitle": "Ieși din zona de confort, călătorește prin toată Europa, dezvoltă abilități pe care nu le înveți la cursuri și cunoaște-ți cei mai buni prieteni.",
+      "applyBtn": "Aplică Acum 🚀",
+      "closedTooltip1": "Înscrierile sunt închise momentan.",
+      "closedTooltip2": "Recrutările reîncep în toamnă!"
+    },
+    "benefitsSection": {
+      "heading": "De ce să ni te alături?",
+      "items": [
+        {
+          "tag": "Internațional",
+          "title": "Călătorește în Europa",
+          "desc": "Participă la cursuri, competiții inginerești și schimburi culturale în 85 de universități din 30 de țări. În mare parte gratuit!"
+        },
+        {
+          "tag": "Abilități",
+          "title": "Dezvoltă-ți Skill-urile",
+          "desc": "De la Public Speaking la Project Management și Web Development. Învață practic într-un mediu sigur și prietenos."
+        },
+        {
+          "tag": "Comunitate",
+          "title": "Comunitate Unică",
+          "desc": "Fă-ți prieteni pe viață, mergi în teambuilding-uri epice și înconjoară-te de oameni ambițioși care vor mai mult de la studenție."
+        },
+        {
+          "tag": "Carieră",
+          "title": "Boost în Carieră",
+          "desc": "Ia legătura direct cu companii de top, organizează evenimente de amploare și construiește-ți un CV care va ieși ușor în evidență."
+        }
+      ]
+    },
+    "testimonials": {
+      "heading": "Ce spun voluntarii noștri?",
+      "pauseHint": "Ține cursorul pentru pauză"
+    },
+    "contact": {
+      "heading1": "Ai întrebări?",
+      "heading2": "Contactează-ne!",
+      "subtitle": "Fie că ești un student dornic să ni se alăture sau o companie interesată de un parteneriat, ne-ar plăcea să discutăm!",
+      "emailLabel": "Email",
+      "phoneLabel": "Telefon",
+      "addressLine1": "BEST Brașov, Căminul 15,",
+      "addressLine2": "Strada Universității 1, Brașov 500068",
+      "form": {
+        "firstName": "Prenume",
+        "firstNamePlaceholder": "Ion",
+        "lastName": "Nume",
+        "lastNamePlaceholder": "Popescu",
+        "email": "Adresă de Email",
+        "emailPlaceholder": "ion.popescu@companie.ro",
+        "subject": "Subiect",
+        "subjectOptions": {
+          "join": "Vreau să mă alătur BEST",
+          "partnership": "Propunere de Parteneriat (Companie)",
+          "other": "Alte Întrebări"
+        },
+        "message": "Mesaj",
+        "messagePlaceholder": "Cu ce te putem ajuta?",
+        "submitBtn": "Trimite Mesajul 🚀"
+      }
+    }
+  }
+}

@@ -46,7 +46,6 @@ const DepartmentCard = ({ dept, index }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      // Perspectiva e crucială pentru efectul 3D
       className="relative w-full h-[600px] sm:h-[650px] lg:h-[600px] cursor-pointer group perspective-1000"
       style={{ perspective: "1000px" }}
       onClick={() => setIsFlipped(!isFlipped)}

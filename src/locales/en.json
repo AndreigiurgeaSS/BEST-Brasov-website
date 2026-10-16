@@ -1,0 +1,82 @@
+{
+  "nav": {
+    "home": "Home",
+    "events": "Events",
+    "departments": "Departments",
+    "management": "Management",
+    "partners": "Partners",
+    "faq": "FAQ",
+    "join": "Join Us!"
+  },
+
+
+  "joinUs": {
+    "pageTitle": "Join Us! | BEST Brașov",
+    "hero": {
+      "badgeOpen": "Recruitment is",
+      "badgeOpenStrong": "OPEN",
+      "badgeClosed": "Recruitment is CLOSED",
+      "title1": "Don't just be a student.",
+      "title2": "Be the BEST.",
+      "subtitle": "Step out of your comfort zone, travel across Europe, develop skills they don't teach you in classes, and meet the best friends you'll ever have.",
+      "applyBtn": "Apply Now 🚀",
+      "closedTooltip1": "Registration is currently closed.",
+      "closedTooltip2": "Recruitment will resume in the fall!"
+    },
+    "benefitsSection": {
+      "heading": "Why should you join us?",
+      "items": [
+        {
+          "tag": "International",
+          "title": "Travel Europe",
+          "desc": "Participate in courses, engineering competitions, and cultural exchanges in 85 universities across 30 countries. Mostly for free!"
+        },
+        {
+          "tag": "Skills",
+          "title": "Level Up Your Skills",
+          "desc": "From Public Speaking to Project Management and Web Development. Learn by doing in a safe, risk-free environment."
+        },
+        {
+          "tag": "Community",
+          "title": "Awesome Community",
+          "desc": "Make lifelong friends, go on epic teambuildings, and surround yourself with ambitious people who want more from their student life."
+        },
+        {
+          "tag": "Career",
+          "title": "Career Boost",
+          "desc": "Connect directly with top companies, organize massive events, and build a CV that will easily stand out to any employer."
+        }
+      ]
+    },
+    "testimonials": {
+      "heading": "What do our volunteers say?",
+      "pauseHint": "Hover to pause"
+    },
+    "contact": {
+      "heading1": "Have questions?",
+      "heading2": "Get in touch!",
+      "subtitle": "Whether you're a student looking to join our team or a company interested in a partnership, we would love to hear from you.",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "addressLine1": "BEST Brașov, Dorm 15,",
+      "addressLine2": "Strada Universității 1, Brașov 500068",
+      "form": {
+        "firstName": "First Name",
+        "firstNamePlaceholder": "John",
+        "lastName": "Last Name",
+        "lastNamePlaceholder": "Doe",
+        "email": "Email Address",
+        "emailPlaceholder": "john.doe@company.com",
+        "subject": "Subject",
+        "subjectOptions": {
+          "join": "I want to join BEST",
+          "partnership": "Company Partnership Inquiry",
+          "other": "Other Questions"
+        },
+        "message": "Message",
+        "messagePlaceholder": "How can we help you?",
+        "submitBtn": "Send Message 🚀"
+      }
+    }
+  }
+}

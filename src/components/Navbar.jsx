@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next"; 
 
 const COLORS = ["#ff4d6d", "#ff9f1c", "#2ec4b6", "#4cc9f0", "#f72585", "#ffffff", "#ffd60a"];
 const PARTICLE_COUNT = 40;
@@ -115,12 +116,24 @@ const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [confettiOrigin, setConfettiOrigin] = useState(null);
-  const joinBtnRef = useRef(null);
   
-  // Detectăm ruta curentă pentru sublinieri
+  const joinBtnRef = useRef(null);
   const location = useLocation();
 
-  // ── Blur ONLY the page content (flex-grow div + footer) behind the menu ──
+  // ── Inițializare Traduceri ────────────────────────────────────────────────
+  const { t, i18n } = useTranslation();
+  
+  // Setăm limba inițială bazat pe ce știe i18next (dacă nu, default e EN)
+  const initialLang = i18n.language ? i18n.language.toUpperCase() : "EN";
+  const [lang, setLang] = useState(initialLang); 
+
+  const handleLangChange = (selectedLang) => {
+    setLang(selectedLang);
+    // Aici se face schimbarea limbii pe tot site-ul
+    i18n.changeLanguage(selectedLang.toLowerCase()); 
+  };
+
+  // ── Blur ONLY the page content ────────────────────────────────────────────
   useEffect(() => {
     const appRoot = document.getElementById("root")?.firstElementChild;
 
@@ -163,14 +176,12 @@ const Navbar = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      // scroll-ul vine de la buton (automat), 
       if (window.isAutoScrolling) {
         setIsVisible(true);
         setLastScrollY(currentScrollY);
-        return; // Oprim execuția aici
+        return; 
       }
 
-      // Comportamentul normal 
       setIsVisible(!(currentScrollY > lastScrollY && currentScrollY > 100));
       setLastScrollY(currentScrollY);
     };
@@ -212,13 +223,14 @@ const Navbar = () => {
     });
   }, []);
 
+  // ── Nav Links (Traduse dinamic) ───────────────────────────────────────────
   const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Events", path: "/events" },
-    { name: "Departments", path: "/departments" },
-    { name: "Management", path: "/management" },
-    { name: "Partners", path: "/partners" },
-    { name: "FAQ", path: "/faq" },
+    { name: t("nav.home"), path: "/" },
+    { name: t("nav.events"), path: "/events" },
+    { name: t("nav.departments"), path: "/departments" },
+    { name: t("nav.management"), path: "/management" },
+    { name: t("nav.partners"), path: "/partners" },
+    { name: t("nav.faq"), path: "/faq" },
   ];
 
   return (
@@ -240,18 +252,41 @@ const Navbar = () => {
         <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 2xl:px-24">
           <div className="flex justify-between items-center h-24">
 
-            {/* Logo + dark mode */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <Link to="/" className="flex items-center cursor-pointer z-50">
+            {/* Logo + Controls */}
+            <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0 z-50">
+              <Link to="/" className="flex items-center cursor-pointer">
                 <img
                   src="/images/logos/logo-BestBV.png"
                   alt="BEST Brașov Logo"
                   className="h-16 sm:h-20 w-auto hover:scale-105 transition-transform"
                 />
               </Link>
+
+              {/* Traductor Minimalist EN | RO (Desktop) */}
+              <div className="hidden sm:flex items-center gap-1.5 text-xs font-black tracking-widest text-white/50">
+                <button 
+                  onClick={() => handleLangChange("EN")}
+                  className={`transition-colors duration-300 hover:scale-105 ${
+                    lang === "EN" ? "text-white" : "hover:text-white/80"
+                  }`}
+                >
+                  EN
+                </button>
+                <span>/</span>
+                <button 
+                  onClick={() => handleLangChange("RO")}
+                  className={`transition-colors duration-300 hover:scale-105 ${
+                    lang === "RO" ? "text-white" : "hover:text-white/80"
+                  }`}
+                >
+                  RO
+                </button>
+              </div>
+
+              {/* Toggle Dark/Light Mode */}
               <button
                 onClick={toggleDarkMode}
-                className="p-2 text-white dark:text-gray-400 hover:bg-white/20 rounded-full transition-colors z-50"
+                className="p-2 text-white dark:text-gray-400 hover:bg-white/20 rounded-full transition-colors"
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -268,7 +303,6 @@ const Navbar = () => {
                     className="relative group py-2 text-rose-50 dark:text-gray-300 hover:text-white text-sm font-bold transition-colors"
                   >
                     {link.name}
-                    {/* Subliniere simplă pentru pagina activă */}
                     <span
                       className={`absolute bottom-0 left-0 h-0.5 bg-white dark:bg-rose-500 rounded-full transition-all duration-300 ${
                         isActive ? "w-full" : "w-0 group-hover:w-full"
@@ -284,15 +318,28 @@ const Navbar = () => {
                 onMouseEnter={triggerConfetti}
                 className="relative inline-flex items-center px-6 py-2.5 ml-2 text-sm font-bold text-[#8b1832] dark:text-white bg-white dark:bg-rose-700 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-1"
               >
-                <span className="relative z-10">Join Us!</span>
+                <span className="relative z-10">{t("nav.join")}</span>
               </Link>
             </div>
 
             {/* Hamburger - VIZIBIL ȘI PE TABLETĂ (PÂNĂ LA LG) */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden text-white p-2 z-50"
+              className="lg:hidden text-white p-2 z-50 flex items-center gap-4"
             >
+              {/* Traductor pentru Mobile (lângă hamburger) */}
+              <div className="sm:hidden flex items-center gap-1 text-[10px] font-black tracking-widest text-white/50 mr-2">
+                <span 
+                  onClick={(e) => { e.stopPropagation(); handleLangChange("EN"); }}
+                  className={`${lang === "EN" ? "text-white" : ""}`}
+                >EN</span>
+                <span>/</span>
+                <span 
+                  onClick={(e) => { e.stopPropagation(); handleLangChange("RO"); }}
+                  className={`${lang === "RO" ? "text-white" : ""}`}
+                >RO</span>
+              </div>
+              
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
@@ -334,7 +381,7 @@ const Navbar = () => {
                   onMouseEnter={triggerConfetti}
                   className="w-full bg-white dark:bg-rose-700 text-[#8b1832] dark:text-white py-4 rounded-2xl font-black text-center block shadow-xl"
                 >
-                  Join Us!
+                  {t("nav.join")}
                 </Link>
               </div>
             </motion.div>
