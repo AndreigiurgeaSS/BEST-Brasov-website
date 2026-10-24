@@ -1,9 +1,11 @@
 import { Mail, Phone, Check, Copy } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 
 // ── Interactive Glass Contact Pill ────────────────────────────────────────────
-const CopyableContact = ({ label, value, displayValue, Icon }) => {
+const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -28,9 +30,9 @@ const CopyableContact = ({ label, value, displayValue, Icon }) => {
       >
         {copied ? <Check size={15} /> : <Icon size={15} />}
       </div>
-      <div className="flex-1 min-w-0 pr-2">
+      <div className="flex-1 min-w-0 pr-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
-          {copied ? "Copied!" : label}
+          {copied ? copiedText : label}
         </p>
         <p className="text-xs sm:text-sm font-semibold text-white/90 group-hover:text-white truncate">
           {displayValue}
@@ -44,65 +46,111 @@ const CopyableContact = ({ label, value, displayValue, Icon }) => {
   );
 };
 
-// ── Arc Navigation Wheel (Open Arc + Auto-Navigate on Spin) ───────────────────
-const pages = [
-  { label: "Home",        path: "/" },
-  { label: "Events",      path: "/events" },
-  { label: "Departments", path: "/departments" },
-  { label: "Management",  path: "/management" },
-  { label: "Partners",    path: "/partners" },
-  { label: "FAQ",         path: "/faq" },
-  { label: "Join Us",     path: "/join" },
-];
-
-const N       = pages.length;
-const ARC_CX  = 20;   // circle center X
-const ARC_CY  = 120;  // circle center Y
-const ARC_R   = 150;  // radius
-const SPREAD  = 28;   // degrees between items
-const DRAG_PX = 30;   // pixels per step
+// ── Arc Navigation Wheel (Smooth Spring Animation + Anchored HUD Pointer) ────
+const ARC_CX       = 20;   // circle center X
+const ARC_CY       = 120;  // circle center Y
+const ARC_R        = 150;  // radius
+const SPREAD       = 28;   // degrees between items
+const DRAG_PX      = 44;   // control smooth pentru drag
+const SETTLE_MS    = 650;  // ms așteptare înainte de navigare auto după eliberare
 
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
 const ArcWheel = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const pages = useMemo(() => [
+    { label: t("nav.home"),        path: "/" },
+    { label: t("nav.events"),      path: "/events" },
+    { label: t("nav.departments"), path: "/departments" },
+    { label: t("nav.management"),  path: "/management" },
+    { label: t("nav.partners"),    path: "/partners" },
+    { label: t("nav.faq"),         path: "/faq" },
+    { label: t("nav.join"),        path: "/join" },
+  ], [t]);
+
+  const N = pages.length;
 
   const getIndexFromPath = useCallback((pathname) => {
     const found = pages.findIndex(
       (p) => p.path === pathname || (p.path !== "/" && pathname.startsWith(p.path))
     );
     return found !== -1 ? found : 0;
-  }, []);
+  }, [pages]);
 
-  const [activeIdx, setActiveIdx] = useState(() => getIndexFromPath(location.pathname));
+  const [activeIdx, setActiveIdx]     = useState(() => getIndexFromPath(location.pathname));
+  const [isSelecting, setIsSelecting] = useState(false);
 
-  const wheelRef      = useRef(null);
   const dragging      = useRef(false);
+  const isInteracting = useRef(false);
   const startY        = useRef(0);
   const startIdx      = useRef(0);
-  const userSpunRef   = useRef(false);
+  const movedPx       = useRef(0);
+  const commitTimer   = useRef(null);
+  const activeIdxRef  = useRef(activeIdx);
 
-  // Sincronizare cu URL-ul când schimbi pagina din altă parte (ex: Navbar)
   useEffect(() => {
-    const urlIdx = getIndexFromPath(location.pathname);
-    if (!userSpunRef.current) {
-      setActiveIdx(urlIdx);
+    activeIdxRef.current = activeIdx;
+  }, [activeIdx]);
+
+  useEffect(() => {
+    if (!isInteracting.current) {
+      setActiveIdx(getIndexFromPath(location.pathname));
     }
   }, [location.pathname, getIndexFromPath]);
 
-  // Navigare AUTOMATĂ instant când învârți roata sus/jos
-  useEffect(() => {
-    if (!userSpunRef.current) return;
+  const commitNavigation = useCallback(
+    (targetIdx) => {
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+      setIsSelecting(false);
+      isInteracting.current = false;
 
-    const targetPath = pages[activeIdx].path;
-    if (location.pathname !== targetPath) {
-      navigate(targetPath);
-    }
-    userSpunRef.current = false;
-  }, [activeIdx, navigate, location.pathname]);
+      const targetPath = pages[targetIdx].path;
+
+      window.isAutoScrolling = true;
+
+      if (location.pathname !== targetPath) {
+        navigate(targetPath);
+      }
+
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => {
+          window.isAutoScrolling = false;
+        }, 900);
+      }, 60);
+    },
+    [navigate, location.pathname, pages]
+  );
+
+  const scheduleCommit = useCallback(
+    (targetIdx, delay = SETTLE_MS) => {
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+      const currentUrlIdx = getIndexFromPath(location.pathname);
+
+      if (targetIdx === currentUrlIdx) {
+        setIsSelecting(false);
+        isInteracting.current = false;
+        return;
+      }
+
+      setIsSelecting(true);
+      commitTimer.current = setTimeout(() => {
+        commitNavigation(targetIdx);
+      }, delay);
+    },
+    [commitNavigation, getIndexFromPath, location.pathname]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (commitTimer.current) clearTimeout(commitTimer.current);
+    };
+  }, []);
 
   function getPos(offsetSteps) {
     const angleDeg = offsetSteps * SPREAD;
@@ -114,36 +162,44 @@ const ArcWheel = () => {
   }
 
   const visibleOffsets = [-3, -2, -1, 0, 1, 2, 3];
-
   const getClientY = (e) => (e.touches ? e.touches[0].clientY : e.clientY);
 
-  const onStart = useCallback(
-    (e) => {
-      dragging.current = true;
-      startY.current   = getClientY(e);
-      startIdx.current = activeIdx;
-    },
-    [activeIdx]
-  );
+  const onStart = useCallback((e) => {
+    if (commitTimer.current) clearTimeout(commitTimer.current);
+    dragging.current      = true;
+    isInteracting.current = true;
+    movedPx.current       = 0;
+    startY.current        = getClientY(e);
+    startIdx.current      = activeIdxRef.current;
+  }, []);
 
   const onMove = useCallback((e) => {
     if (!dragging.current) return;
     const delta = startY.current - getClientY(e);
-    const steps = Math.round(delta / DRAG_PX);
+    movedPx.current = Math.max(movedPx.current, Math.abs(delta));
+
+    if (Math.abs(delta) < 8) return;
+
+    const steps   = Math.round(delta / DRAG_PX);
     const nextIdx = mod(startIdx.current + steps, N);
 
-    setActiveIdx((prev) => {
-      if (prev !== nextIdx) {
-        userSpunRef.current = true;
-        return nextIdx;
-      }
-      return prev;
-    });
-  }, []);
+    if (nextIdx !== activeIdxRef.current) {
+      activeIdxRef.current = nextIdx;
+      setActiveIdx(nextIdx);
+      setIsSelecting(true);
+    }
+  }, [N]);
 
   const onEnd = useCallback(() => {
+    if (!dragging.current) return;
     dragging.current = false;
-  }, []);
+
+    if (movedPx.current >= 8) {
+      scheduleCommit(activeIdxRef.current, 450);
+    } else {
+      isInteracting.current = false;
+    }
+  }, [scheduleCommit]);
 
   useEffect(() => {
     window.addEventListener("mousemove", onMove);
@@ -158,113 +214,171 @@ const ArcWheel = () => {
     };
   }, [onMove, onEnd]);
 
-  // Suport pentru rotirea cu rotița mouse-ului -> schimbă pagina automat
-  useEffect(() => {
-    const el = wheelRef.current;
-    if (!el) return;
-    const handleWheel = (e) => {
-      e.preventDefault();
-      const dir = e.deltaY > 0 ? 1 : -1;
-      userSpunRef.current = true;
-      setActiveIdx((prev) => mod(prev + dir, N));
-    };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+  const activePos = getPos(0); // { x: 170, y: 120 }
+  const arcPath   = `M ${ARC_CX},${ARC_CY - ARC_R + 30} A ${ARC_R},${ARC_R} 0 0,1 ${ARC_CX},${ARC_CY + ARC_R - 30}`;
 
-  const activePos = getPos(0);
+  // Punctul matematic exact de pe mijlocul liniei arcadei (y = 120 => x = 110)
+  const arcApexX = ARC_CX + Math.sqrt(ARC_R * ARC_R - (ARC_R - 30) * (ARC_R - 30)); // 110
+  const pointerEndX = activePos.x + 2; // 172 (fix în fața textului activ de la 184)
 
   return (
     <div
-      ref={wheelRef}
       className="relative select-none cursor-grab active:cursor-grabbing"
-      style={{ width: "240px", height: "240px", flexShrink: 0 }}
+      style={{ width: "260px", height: "240px", flexShrink: 0 }}
       onMouseDown={onStart}
       onTouchStart={(e) => {
         onStart(e);
-        e.preventDefault();
       }}
     >
       <svg
-        viewBox="0 0 240 240"
-        width="240"
+        viewBox="0 0 260 240"
+        width="260"
         height="240"
         style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}
       >
-        {/* Arcada deschisă */}
-        <path
-          d={`M ${ARC_CX},${ARC_CY - ARC_R + 30} A ${ARC_R},${ARC_R} 0 0,1 ${ARC_CX},${ARC_CY + ARC_R - 30}`}
+        <defs>
+          {/* Gradient vertical pe linia arcadei */}
+          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.03)" />
+            <stop offset="50%" stopColor={isSelecting ? "rgba(251,113,133,0.65)" : "rgba(255,255,255,0.38)"} />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.03)" />
+          </linearGradient>
+
+          {/* Gradient orizontal pentru raza indicatoare dintre arcadă și text */}
+          <linearGradient id="pointerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
+            <stop offset="100%" stopColor={isSelecting ? "#fda4af" : "rgba(255,255,255,0.9)"} />
+          </linearGradient>
+        </defs>
+
+        {/* Soft glow pe linia arcadei când rotești */}
+        <motion.path
+          d={arcPath}
           fill="none"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="1.2"
+          stroke="rgba(251,113,133,0.3)"
+          strokeLinecap="round"
+          animate={{
+            strokeWidth: isSelecting ? 5 : 0,
+            opacity: isSelecting ? 1 : 0,
+          }}
+          transition={{ duration: 0.3 }}
+          style={{ filter: "blur(4px)" }}
+        />
+
+        {/* Linia principală a arcadei */}
+        <path
+          d={arcPath}
+          fill="none"
+          stroke="url(#arcGrad)"
+          strokeWidth="1.5"
           strokeLinecap="round"
         />
 
-        {/* Glow fin pe punctul activ */}
-        <circle
-          cx={activePos.x - 8}
-          cy={activePos.y}
-          r="8"
-          fill="rgba(255,255,255,0.14)"
+        {/* Halo exterior FIX PE LINIA ARCADEI (ancorat estetic pe curbă) */}
+        <motion.circle
+          cx={arcApexX}
+          cy={ARC_CY}
+          key={`halo-${activeIdx}`}
+          initial={{ r: 12, opacity: 0.5 }}
+          animate={{
+            r: isSelecting ? 10 : 7,
+            opacity: 1,
+            fill: isSelecting ? "rgba(251,113,133,0.32)" : "rgba(255,255,255,0.14)",
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
         />
 
-        {/* Active dot on arc line */}
+        {/* Bulina albă ancorată exact pe vârful arcadei */}
         <circle
-          cx={activePos.x - 8}
-          cy={activePos.y}
-          r="4"
+          cx={arcApexX}
+          cy={ARC_CY}
+          r="3.5"
           fill="white"
-          opacity="0.95"
         />
 
-        {/* Arrow → next to dot */}
-        <text
-          x={activePos.x - 1}
-          y={activePos.y + 4}
-          fontSize="11"
-          fill="rgba(255,255,255,0.7)"
-          fontFamily="sans-serif"
+        {/* Conector + Săgeată vectorială (───▸) care pleacă din bulina de pe arc spre pagina activă */}
+        <motion.g
+          key={`pointer-${activeIdx}`}
+          initial={{ x: -5, opacity: 0.5 }}
+          animate={{ x: isSelecting ? 3 : 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 340, damping: 22 }}
         >
-          →
-        </text>
+          {/* Linia fină în gradient */}
+          <line
+            x1={arcApexX + 7}
+            y1={ARC_CY}
+            x2={pointerEndX - 2}
+            y2={ARC_CY}
+            stroke="url(#pointerGrad)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          {/* Vârful săgeții (chevron modern) */}
+          <path
+            d={`M ${pointerEndX - 6},${ARC_CY - 3.5} L ${pointerEndX},${ARC_CY} L ${pointerEndX - 6},${ARC_CY + 3.5}`}
+            fill="none"
+            stroke={isSelecting ? "#fda4af" : "white"}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </motion.g>
       </svg>
 
-      {/* Page labels */}
+      {/* Textele paginilor — cu y: "-50%" în animate ca să fie centrate la milimetru cu săgeata */}
       {visibleOffsets.map((offset) => {
         const idx        = mod(activeIdx + offset, N);
         const pos        = getPos(offset);
         const absOffset  = Math.abs(offset);
         const opacity    = offset === 0 ? 1 : Math.max(0.08, 0.58 - absOffset * 0.17);
-        const fontSize   = offset === 0 ? 16 : Math.max(9.5, 13 - absOffset * 1.3);
+        const fontSize   = offset === 0 ? 16.5 : Math.max(9.5, 13 - absOffset * 1.3);
         const fontWeight = offset === 0 ? 700 : 400;
 
         return (
-          <div
-            key={offset}
+          <motion.div
+            key={idx}
+            initial={false}
+            animate={{
+              left: pos.x + 14,
+              top: pos.y,
+              y: "-50%",
+              opacity,
+              scale: offset === 0 ? 1.05 : 1 - absOffset * 0.04,
+              filter: absOffset >= 3 ? "blur(0.6px)" : "blur(0px)",
+            }}
+            whileHover={{
+              x: 4,
+              opacity: Math.min(1, opacity + 0.25),
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 26,
+              mass: 0.85,
+            }}
             onClick={() => {
-              userSpunRef.current = true;
+              if (movedPx.current > 8) return;
+              activeIdxRef.current = idx;
               setActiveIdx(idx);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              commitNavigation(idx);
             }}
             style={{
-              position:      "absolute",
-              left:          `${pos.x + 12}px`,
-              top:           `${pos.y}px`,
-              transform:     "translateY(-50%)",
-              fontSize:      `${fontSize}px`,
+              position:        "absolute",
+              transformOrigin: "left center",
+              fontSize:        `${fontSize}px`,
               fontWeight,
-              color:         `rgba(255,255,255,${opacity})`,
-              whiteSpace:    "nowrap",
-              cursor:        "pointer",
-              letterSpacing: "0.02em",
-              transition:    "all 0.3s ease",
-              pointerEvents: "auto",
-              padding:       "4px 0",
-              userSelect:    "none",
+              color:           "#ffffff",
+              whiteSpace:      "nowrap",
+              cursor:          "pointer",
+              letterSpacing:   "0.02em",
+              pointerEvents:   "auto",
+              padding:         "4px 0",
+              userSelect:      "none",
+              willChange:      "left, top, opacity, transform",
             }}
           >
             {pages[idx].label}
-          </div>
+          </motion.div>
         );
       })}
     </div>
@@ -273,6 +387,7 @@ const ArcWheel = () => {
 
 // ── Footer ────────────────────────────────────────────────────────────────────
 const Footer = () => {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
 
   const socials = [
@@ -320,16 +435,14 @@ const Footer = () => {
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-[#6b1226] to-[#4c0b1a] dark:from-gray-950 dark:to-black text-gray-200 pt-14 pb-8 border-t border-white/10 dark:border-gray-900 transition-colors duration-300">
-      {/* Ambient background glow */}
       <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-rose-500/10 blur-3xl rounded-full" />
 
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-6 sm:px-8 relative z-10">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-4 items-center pb-12">
 
-        {/* ── Main grid ── */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 items-center pb-12">
-
-          {/* Col 1: Brand & Story (Stânga - 5 cols) */}
-          <div className="md:col-span-5 flex flex-col items-center md:items-start gap-4">
+          {/* Stânga (Brand & Info) */}
+          <div className="lg:col-span-4 flex flex-col items-center lg:items-start gap-4">
             <Link
               to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -342,25 +455,25 @@ const Footer = () => {
               />
             </Link>
 
-            <p className="text-sm text-rose-100/80 dark:text-gray-400 max-w-xs leading-relaxed text-center md:text-left">
-              Developing students since 1997. Empowering the next generation of engineers, leaders, and innovators at Transilvania University.
+            <p className="text-sm text-rose-100/80 dark:text-gray-400 max-w-xs leading-relaxed text-center lg:text-left">
+              {t("footer.description")}
             </p>
           </div>
 
-          {/* Col 2: Arc Navigation Wheel (Centru - 3 cols) */}
-          <div className="md:col-span-3 flex justify-center md:-ml-4">
+          {/* Centru (Arc Wheel) */}
+          <div className="lg:col-span-4 flex justify-center lg:justify-start lg:pl-12">
             <ArcWheel />
           </div>
 
-          {/* Col 3: Dreapta (4 cols) — Follow Us sus + Contactele una sub alta jos */}
-          <div className="md:col-span-4 flex flex-col items-center md:items-start gap-5 w-full max-w-[260px] mx-auto md:mx-0 md:pl-4">
+          {/* Dreapta (Contacte & Socials) */}
+          <div className="lg:col-span-4 flex flex-col items-center gap-5 w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto lg:-pl-8">
             
             {/* Socials */}
-            <div className="flex flex-col items-center md:items-start gap-2.5 w-full">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500">
-                Follow Us
+            <div className="flex flex-col items-center gap-2.5 w-full">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
+                {t("footer.followUs")}
               </p>
-              <div className="flex gap-2.5">
+              <div className="flex justify-center gap-2.5">
                 {socials.map((s, i) => (
                   <a
                     key={i}
@@ -376,32 +489,33 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Email & Phone una sub alta */}
+            {/* Email & Phone */}
             <div className="flex flex-col gap-2.5 w-full">
               <CopyableContact
                 label="Email"
                 value="bv-board@BEST-eu.org"
                 displayValue="bv-board@BEST-eu.org"
                 Icon={Mail}
+                copiedText={t("footer.copied")}
               />
               <CopyableContact
                 label="Phone"
                 value="+40764468602"
                 displayValue="+40 764 468 602"
                 Icon={Phone}
+                copiedText={t("footer.copied")}
               />
             </div>
-
           </div>
 
         </div>
 
-        {/* ── Bottom bar ── */}
+        {/* Bottom bar */}
         <div className="pt-6 border-t border-white/10 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500">
-          <p>BEST Brașov © {year}. All rights reserved.</p>
+          <p>{t("footer.rights").replace("{{year}}", year)}</p>
           <p className="flex items-center gap-1.5">
-            Made with <span className="text-rose-400 animate-pulse">❤️</span> by the{" "}
-            <span className="text-white/90 font-semibold">IT Department</span>
+            {t("footer.madeWith")} <span className="text-rose-400 animate-pulse">❤️</span>{" "}
+            <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>
 
