@@ -9,6 +9,86 @@
     "join": "Alătură-te!"
   },
 
+ "footer": {
+    "description": "Dezvoltăm studenți din 1997. Susținem următoarea generație de ingineri, lideri și inovatori la Universitatea Transilvania.",
+    "followUs": "Urmărește-ne",
+    "copied": "Copiat!",
+    "rights": "BEST Brașov © {{year}}. Toate drepturile rezervate.",
+    "madeWith": "Creat cu",
+    "byItDept": "de Departamentul IT"
+  },
+
+
+
+
+  "eventsPage": {
+    "pageTitle": "Evenimente | BEST Brașov",
+    "header": {
+      "titleStart": "Descoperă ",
+      "titleHighlight": "Evenimentele Noastre",
+      "subtitle": "Organizăm evenimente pentru a crea punți de legătură între studenți, universitate și mediul de afaceri. Vezi ce urmează!"
+    },
+    "calendar": {
+      "title": "Calendar Evenimente",
+      "moreInfo": "Află mai multe"
+    },
+    "publicEvents": {
+      "title": "Evenimente Publice",
+      "subtitle": "Deschise tuturor studenților din universitate."
+    },
+    "internalEvents": {
+      "title": "Evenimente Interne",
+      "subtitle": "Activități exclusive pentru membrii activi BEST."
+    },
+    "carousel": {
+      "viewDetails": "Vezi Detalii"
+    }
+  },
+
+
+  "eventsData": {
+    "external": {
+      "bit": {
+        "title": "BIT",
+        "desc": "BEST Information Technology, ajuns la a opta ediție, își propune să dezvolte o legătură strânsă între companiile IT, mediul universitar și studenții brașoveni prin activități dinamice: prezentări de companii, workshop-uri, competiții și show & tell."
+      },
+      "hackathon": {
+        "title": "Hackathon",
+        "desc": "Un Hackathon este o competiție de programare unde participanții își folosesc abilitățile pentru a rezolva o problemă specifică. În iarna lui 2019 a avut loc primul Hackathon organizat de BEST Brașov, punând la încercare cunoștințele studenților timp de 24 de ore."
+      },
+      "btw": {
+        "title": "BTW",
+        "desc": "BEST Training Week este un eveniment educațional organizat pentru studenții Universității Transilvania. Constă în sesiuni de training gratuite, axate în principal pe dezvoltarea soft skills, menite să ajute viitorii absolvenți în dezvoltarea personală și să îi pregătească pentru o carieră de succes."
+      },
+      "bcds": {
+        "title": "BCDs",
+        "desc": "BEST Career Days este un eveniment dedicat studenților, unde ai ocazia să interacționezi direct cu angajatori și companii pentru a-ți aprofunda cunoștințele. De asemenea, ai șansa de a obține un internship sau chiar un job, făcând un pas sigur spre cariera dorită."
+      },
+      "bcd": {
+        "title": "BCD",
+        "desc": "BEST Company Day se adresează studenților Universității Transilvania, oferind oportunități de interacțiune cu specialiști și angajați din domeniul tehnic. Este o șansă excelentă de a-ți dezvolta cunoștințele și de a obține un interviu pentru un internship sau job."
+      },
+      "courses": {
+        "title": "Cursuri BEST",
+        "desc": "De-a lungul anului, BEST organizează diverse cursuri unde studenții de la universitățile tehnice au șansa unei experiențe internaționale, își fac prieteni noi, își îmbunătățesc engleza și se distrează. La fiecare eveniment participă 20-30 de studenți care își doresc o experiență unică, diferită de viața obișnuită de facultate."
+      },
+      "gala": {
+        "title": "Gala Aniversară",
+        "desc": "Gala Aniversară este un eveniment pe care îl organizăm o dată la 5 ani (cel mai recent fiind anul trecut, la împlinirea a 25 de ani de activitate). În cadrul acesteia, ne prezentăm activitatea partenerilor noștri tehnici și academici și le mulțumim public pentru tot sprijinul acordat."
+      }
+    },
+    "internal": {
+      "mw": {
+        "title": "Motivation Weekend",
+        "desc": "Motivation Weekend este un eveniment de 3 zile menit să integreze noii membri ai organizației. Are loc de două ori pe an, de obicei după perioada de recrutare. Aici, membrii BEST Brașov iau parte la diverse activități, training-uri și învață tradițiile organizației noastre."
+      },
+      "ai": {
+        "title": "Aniversarea Internă",
+        "desc": "Aniversarea Internă este evenimentul în care membrii BEST Brașov sărbătoresc încă un an de existență a organizației și onorează membrii alumni. Este ocazia perfectă pentru membrii noi de a interacționa cu cei vechi și de a asculta poveștile și experiențele lor din organizație."
+      }
+    }
+  },
+
 
   "joinUs": {
     "pageTitle": "Alătură-te! | BEST Brașov",
