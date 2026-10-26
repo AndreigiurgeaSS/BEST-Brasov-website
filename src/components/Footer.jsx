@@ -46,13 +46,13 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   );
 };
 
-// ── Arc Navigation Wheel (Smooth Spring Animation + Anchored HUD Pointer) ────
-const ARC_CX       = 20;   // circle center X
-const ARC_CY       = 120;  // circle center Y
-const ARC_R        = 150;  // radius
-const SPREAD       = 28;   // degrees between items
-const DRAG_PX      = 44;   // control smooth pentru drag
-const SETTLE_MS    = 650;  // ms așteptare înainte de navigare auto după eliberare
+// ── Arc Navigation Wheel (Locked Drag + Smooth Spring Animation) ─────────────
+const ARC_CX    = 20;   // circle center X
+const ARC_CY    = 120;  // circle center Y
+const ARC_R     = 150;  // radius
+const SPREAD    = 28;   // degrees between items
+const DRAG_PX   = 44;   // control smooth pentru drag
+const SETTLE_MS = 650;  // ms așteptare înainte de navigare auto după eliberare
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -63,24 +63,30 @@ const ArcWheel = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const pages = useMemo(() => [
-    { label: t("nav.home"),        path: "/" },
-    { label: t("nav.events"),      path: "/events" },
-    { label: t("nav.departments"), path: "/departments" },
-    { label: t("nav.management"),  path: "/management" },
-    { label: t("nav.partners"),    path: "/partners" },
-    { label: t("nav.faq"),         path: "/faq" },
-    { label: t("nav.join"),        path: "/join" },
-  ], [t]);
+  const pages = useMemo(
+    () => [
+      { label: t("nav.home"),        path: "/" },
+      { label: t("nav.events"),      path: "/events" },
+      { label: t("nav.departments"), path: "/departments" },
+      { label: t("nav.management"),  path: "/management" },
+      { label: t("nav.partners"),    path: "/partners" },
+      { label: t("nav.faq"),         path: "/faq" },
+      { label: t("nav.join"),        path: "/join" },
+    ],
+    [t]
+  );
 
   const N = pages.length;
 
-  const getIndexFromPath = useCallback((pathname) => {
-    const found = pages.findIndex(
-      (p) => p.path === pathname || (p.path !== "/" && pathname.startsWith(p.path))
-    );
-    return found !== -1 ? found : 0;
-  }, [pages]);
+  const getIndexFromPath = useCallback(
+    (pathname) => {
+      const found = pages.findIndex(
+        (p) => p.path === pathname || (p.path !== "/" && pathname.startsWith(p.path))
+      );
+      return found !== -1 ? found : 0;
+    },
+    [pages]
+  );
 
   const [activeIdx, setActiveIdx]     = useState(() => getIndexFromPath(location.pathname));
   const [isSelecting, setIsSelecting] = useState(false);
@@ -173,22 +179,31 @@ const ArcWheel = () => {
     startIdx.current      = activeIdxRef.current;
   }, []);
 
-  const onMove = useCallback((e) => {
-    if (!dragging.current) return;
-    const delta = startY.current - getClientY(e);
-    movedPx.current = Math.max(movedPx.current, Math.abs(delta));
+  const onMove = useCallback(
+    (e) => {
+      if (!dragging.current) return;
 
-    if (Math.abs(delta) < 8) return;
+      // Blochează complet scroll-ul paginii când tragi în sus sau în jos de roată
+      if (e.cancelable) {
+        e.preventDefault();
+      }
 
-    const steps   = Math.round(delta / DRAG_PX);
-    const nextIdx = mod(startIdx.current + steps, N);
+      const delta = startY.current - getClientY(e);
+      movedPx.current = Math.max(movedPx.current, Math.abs(delta));
 
-    if (nextIdx !== activeIdxRef.current) {
-      activeIdxRef.current = nextIdx;
-      setActiveIdx(nextIdx);
-      setIsSelecting(true);
-    }
-  }, [N]);
+      if (Math.abs(delta) < 8) return;
+
+      const steps   = Math.round(delta / DRAG_PX);
+      const nextIdx = mod(startIdx.current + steps, N);
+
+      if (nextIdx !== activeIdxRef.current) {
+        activeIdxRef.current = nextIdx;
+        setActiveIdx(nextIdx);
+        setIsSelecting(true);
+      }
+    },
+    [N]
+  );
 
   const onEnd = useCallback(() => {
     if (!dragging.current) return;
@@ -202,33 +217,43 @@ const ArcWheel = () => {
   }, [scheduleCommit]);
 
   useEffect(() => {
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousemove", onMove, { passive: false });
     window.addEventListener("mouseup",   onEnd);
     window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("touchend",  onEnd);
+    window.addEventListener("touchcancel", onEnd);
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup",   onEnd);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend",  onEnd);
+      window.removeEventListener("touchcancel", onEnd);
     };
   }, [onMove, onEnd]);
 
-  const activePos = getPos(0); // { x: 170, y: 120 }
-  const arcPath   = `M ${ARC_CX},${ARC_CY - ARC_R + 30} A ${ARC_R},${ARC_R} 0 0,1 ${ARC_CX},${ARC_CY + ARC_R - 30}`;
-
-  // Punctul matematic exact de pe mijlocul liniei arcadei (y = 120 => x = 110)
-  const arcApexX = ARC_CX + Math.sqrt(ARC_R * ARC_R - (ARC_R - 30) * (ARC_R - 30)); // 110
-  const pointerEndX = activePos.x + 2; // 172 (fix în fața textului activ de la 184)
+  const activePos   = getPos(0); // { x: 170, y: 120 }
+  const arcPath     = `M ${ARC_CX},${ARC_CY - ARC_R + 30} A ${ARC_R},${ARC_R} 0 0,1 ${ARC_CX},${ARC_CY + ARC_R - 30}`;
+  const arcApexX    = ARC_CX + Math.sqrt(ARC_R * ARC_R - (ARC_R - 30) * (ARC_R - 30)); // 110
+  const pointerEndX = activePos.x + 2; // 172
 
   return (
     <div
-      className="relative select-none cursor-grab active:cursor-grabbing"
-      style={{ width: "260px", height: "240px", flexShrink: 0 }}
-      onMouseDown={onStart}
+      className="relative select-none touch-none cursor-grab active:cursor-grabbing"
+      style={{
+        width: "260px",
+        height: "240px",
+        flexShrink: 0,
+        touchAction: "none",
+        overscrollBehavior: "contain",
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault(); // Previne selecția nativă sau drag-scroll-ul la click
+        onStart(e);
+      }}
       onTouchStart={(e) => {
         onStart(e);
       }}
+      onDragStart={(e) => e.preventDefault()}
     >
       <svg
         viewBox="0 0 260 240"
@@ -274,7 +299,7 @@ const ArcWheel = () => {
           strokeLinecap="round"
         />
 
-        {/* Halo exterior FIX PE LINIA ARCADEI (ancorat estetic pe curbă) */}
+        {/* Halo exterior FIX PE LINIA ARCADEI */}
         <motion.circle
           cx={arcApexX}
           cy={ARC_CY}
@@ -296,14 +321,13 @@ const ArcWheel = () => {
           fill="white"
         />
 
-        {/* Conector + Săgeată vectorială (───▸) care pleacă din bulina de pe arc spre pagina activă */}
+        {/* Conector + Săgeată vectorială (───▸) */}
         <motion.g
           key={`pointer-${activeIdx}`}
           initial={{ x: -5, opacity: 0.5 }}
           animate={{ x: isSelecting ? 3 : 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 340, damping: 22 }}
         >
-          {/* Linia fină în gradient */}
           <line
             x1={arcApexX + 7}
             y1={ARC_CY}
@@ -313,7 +337,6 @@ const ArcWheel = () => {
             strokeWidth="1.5"
             strokeLinecap="round"
           />
-          {/* Vârful săgeții (chevron modern) */}
           <path
             d={`M ${pointerEndX - 6},${ARC_CY - 3.5} L ${pointerEndX},${ARC_CY} L ${pointerEndX - 6},${ARC_CY + 3.5}`}
             fill="none"
@@ -325,7 +348,7 @@ const ArcWheel = () => {
         </motion.g>
       </svg>
 
-      {/* Textele paginilor — cu y: "-50%" în animate ca să fie centrate la milimetru cu săgeata */}
+      {/* Textele paginilor */}
       {visibleOffsets.map((offset) => {
         const idx        = mod(activeIdx + offset, N);
         const pos        = getPos(offset);
@@ -374,6 +397,7 @@ const ArcWheel = () => {
               pointerEvents:   "auto",
               padding:         "4px 0",
               userSelect:      "none",
+              touchAction:     "none",
               willChange:      "left, top, opacity, transform",
             }}
           >
@@ -438,9 +462,7 @@ const Footer = () => {
       <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-rose-500/10 blur-3xl rounded-full" />
 
       <div className="max-w-[1200px] mx-auto px-6 sm:px-8 relative z-10">
-        
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-4 items-center pb-12">
-
           {/* Stânga (Brand & Info) */}
           <div className="lg:col-span-4 flex flex-col items-center lg:items-start gap-4">
             <Link
@@ -467,7 +489,6 @@ const Footer = () => {
 
           {/* Dreapta (Contacte & Socials) */}
           <div className="lg:col-span-4 flex flex-col items-center gap-5 w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto lg:-pl-8">
-            
             {/* Socials */}
             <div className="flex flex-col items-center gap-2.5 w-full">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
@@ -507,7 +528,6 @@ const Footer = () => {
               />
             </div>
           </div>
-
         </div>
 
         {/* Bottom bar */}
@@ -518,7 +538,6 @@ const Footer = () => {
             <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>
-
       </div>
     </footer>
   );
