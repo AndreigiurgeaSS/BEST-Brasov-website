@@ -8,8 +8,7 @@
     "faq": "Întrebări Frecvente",
     "join": "Alătură-te!"
   },
-
- "footer": {
+  "footer": {
     "description": "Dezvoltăm studenți din 1997. Susținem următoarea generație de ingineri, lideri și inovatori la Universitatea Transilvania.",
     "followUs": "Urmărește-ne",
     "copied": "Copiat!",
@@ -17,10 +16,198 @@
     "madeWith": "Creat cu",
     "byItDept": "de Departamentul IT"
   },
-
-
-
-
+  "hero": {
+    "tag": "Board of European Students of Technology",
+    "titleStart": "BEST",
+    "titleHighlight": "Brașov",
+    "subtitle": "Dezvoltăm studenți din 1997.",
+    "description": "BEST Brașov este o organizație non-guvernamentală, înființată în 1997, destinată studenților Universității Transilvania. Facilităm comunicarea dintre Universitate, studenți și companii, susținând dezvoltarea profesională și personală a membrilor și studenților.",
+    "exploreBtn": "Descoperă Evenimentele",
+    "contactBtn": "Contactează-ne",
+    "scrollDown": "Derulează în jos",
+    "stats": {
+      "founded": "Înființat la Brașov",
+      "universities": "Universități Europene",
+      "countries": "Țări în Rețea"
+    }
+  },
+  "whatIsBest": {
+    "titleStart": "Ce este",
+    "titleHighlight": "BEST?",
+    "local": {
+      "year": "1997",
+      "heading": "Am început aici, la Brașov.",
+      "p1": "Înființat în 1997, BEST Brașov creează punți de legătură între studenți, mediul academic și lumea corporativă la Universitatea Transilvania. Prioritatea noastră este dezvoltarea profesională și personală a fiecărui membru.",
+      "p2": "Organizăm evenimente dedicate — workshop-uri, cursuri academice și prezentări de companii — concepute pentru a răspunde nevoilor reale ale studenților.",
+      "p3": "Dincolo de latura academică, construim o comunitate unită prin activități sociale dinamice și teambuilding-uri."
+    },
+    "international": {
+      "year": "1989",
+      "heading": "Dar povestea este mult mai mare.",
+      "p1": "BEST (Board of European Students of Technology) a fost fondat în 1989 și activează în 85 de universități din 30 de țări. Conectăm studenți pasionați de tehnologie la scară internațională.",
+      "p2": "Prin rețeaua noastră vastă, facilităm schimburi academice, cursuri sezoniere și oportunități unice de networking cu profesioniști de top.",
+      "p3": "Susținem inovația organizând competiții tehnice (precum EBEC), training-uri și workshop-uri în inginerie, IT, robotică și design.",
+      "visitBtn": "Vizitează best.eu.org"
+    }
+  },
+  "whatWeDo": {
+    "title": "Cu ce ne ocupăm?",
+    "subtitle": "Susținem studenții prin trei direcții principale.",
+    "pillars": [
+      {
+        "title": "Educație Complementară",
+        "description": "Oferim oportunități excelente de formare continuă într-un mediu internațional. Cursurile noastre sezoniere le permit studenților să își aprofundeze cunoștințele lucrând în echipe interdisciplinare."
+      },
+      {
+        "title": "Suport în Carieră",
+        "description": "Oferim sprijin real în dezvoltarea carierei. Prin evenimente precum BEST Company Day, conectăm studenții direct cu companii de top pentru a le prezenta oportunități și a le lansa cariera."
+      },
+      {
+        "title": "Implicare Educațională",
+        "description": "Suntem implicăți activ în educație prin competiții tehnice precum EBEC. Încurajăm studenții să își aplice cunoștințele în medii competitive, dezvoltând gândirea critică și munca în echipă."
+      }
+    ]
+  },
+  "coreValues": {
+    "titleHighlight": "VALORILE",
+    "titleEnd": "BEST",
+    "items": [
+      {
+        "title": "DISTRACȚIE",
+        "desc": "Iubim ceea ce facem și ne dorim ca toți cei care participă la activitățile și evenimentele noastre să simtă același lucru."
+      },
+      {
+        "title": "PRIETENIE",
+        "desc": "Construim relații de durată, fiind alături unii de alții atât în momentele bune, cât și în cele dificile."
+      },
+      {
+        "title": "FLEXIBILITATE",
+        "desc": "Suntem deschiși la idei noi. Indiferent ce se întâmplă, căutăm soluții pentru a ne adapta."
+      },
+      {
+        "title": "DESCHIDERE",
+        "desc": "Ne propunem să devenim mai buni în fiecare zi. Dacă noi evoluăm, și cei din jurul nostru evoluează."
+      },
+      {
+        "title": "DEZVOLTARE",
+        "desc": "Învățăm din fiecare experiență, eveniment sau chiar dintr-o simplă conversație cu un alt membru BEST."
+      }
+    ]
+  },
+  "departmentsPage": {
+    "pageTitle": "Departamente | BEST Brașov",
+    "titleStart": "Departamentele",
+    "titleHighlight": "Noastre",
+    "subtitle": "Descoperă departamentele noastre și găsește-l pe cel care ți se potrivește. Apasă pe orice card pentru a vedea ce se întâmplă în culise!",
+    "imagePlaceholder": "Imagine",
+    "clickToFlip": "Apasă pentru a întoarce",
+    "whatWeDo": "Ce facem noi?",
+    "items": [
+      {
+        "name": "Resurse Umane",
+        "short": "HR",
+        "motto": "Ești o persoană sociabilă căreia îi place să fie înconjurată de oameni și să își facă prieteni ușor? Sau poate ești mai timid și vrei un spațiu sigur în care să îți exersezi abilitățile sociale? În BEST ai șansa perfectă să îți dezvolți soft skill-urile, să interacționezi cu personalități diverse și să organizezi cele mai memorabile activități pentru prietenii tăi!",
+        "desc": "Acest departament are grijă de membrii organizației: de la ieșiri, petreceri și teambuilding-uri, până la training-uri și activități de dezvoltare. În plus, se ocupă de evaluarea constantă a activității noastre, pentru a ne îmbunătăți continuu munca."
+      },
+      {
+        "name": "Fundraising",
+        "short": "FR",
+        "motto": "Negocieri? Întâlniri corporate? Dacă vrei să îți învingi teama de a comunica într-un mediu profesional și să stăpânești tehnici de negociere care îți vor oferi un avantaj enorm în viitoarea ta carieră, FR este locul potrivit pentru tine!",
+        "desc": "Membrii implicați în acest departament se asigură că avem resursele materiale și financiare necesare desfășurării proiectelor noastre. Ei contactează și negociază cu companiile pentru a le convinge să sponsorizeze evenimentele noastre sau să ofere premii participanților."
+      },
+      {
+        "name": "Marketing",
+        "short": "PR",
+        "motto": "Design? Editare video? Ești mereu la curent cu trendurile de pe social media? Dacă vrei să explorezi marketingul digital, designul de produs și public speaking-ul, sau cauți un spațiu în care să îți pui creativitatea în practică, PR te așteaptă!",
+        "desc": "Membrii acestui departament sunt responsabili de imaginea externă a organizației: de la design de afișe, materiale promoționale, articole, prezență pe social media și podcast-uri, până la menținerea relațiilor cu Universitatea, partenerii și studenții."
+      },
+      {
+        "name": "Tehnologia Informației",
+        "short": "IT",
+        "motto": "Site-uri web? Aplicații? Dacă vrei să îți dezvolți abilitățile de organizare și să dobândești cunoștințe tehnice care îți vor propulsa cariera într-un domeniu de viitor, IT este pentru tine! Alătură-te nouă pentru a colabora la proiecte captivante alături de o echipă pasionată.",
+        "desc": "Aici ai ocazia să înveți cum să creezi un site web și cum să gestionezi toate resursele tehnice necesare organizării unui eveniment. De asemenea, te poți dezvolta în zona de robotică, lucrând la proiecte interesante alături de ceilalți membri ai departamentului!"
+      }
+    ]
+  },
+  "managementPage": {
+    "pageTitle": "Conducere | BEST Brașov",
+    "titleStart": "Cunoaște",
+    "titleHighlight": "Echipa",
+    "subtitle": "Studenții dedicați care lucrează în culise pentru a transforma fiecare proiect în realitate.",
+    "boardTitle": "Consiliul Director Local (Board)",
+    "coordinatorsTitle": "Coordonatori de Departamente",
+    "roles": {
+      "vpHr": "Vicepreședinte & Coordonator Resurse Umane",
+      "president": "Președinte",
+      "vpMarketing": "Vicepreședinte & Coordonator Marketing",
+      "treasurerFr": "Trezorier & Coordonator Fundraising",
+      "secretary": "Secretar General",
+      "itCoord": "Coordonator IT",
+      "vivaldiCoord": "Coordonator Vivaldi"
+    }
+  },
+  "partnersPage": {
+    "pageTitle": "Parteneri | BEST Brașov",
+    "titleStart": "Partenerii",
+    "titleHighlight": "Noștri",
+    "subtitle": "Mulțumim companiilor și instituțiilor care ne susțin în dezvoltarea studenților și a comunității.",
+    "strategicBadge": "Strategic",
+    "moreInfo": "Mai multe detalii",
+    "visitSiteTitle": "Vizitează site-ul {{name}}",
+    "sections": {
+      "yearRound": "Parteneri Anuali",
+      "technical": "Parteneri Tehnici",
+      "foodAndPrizes": "Parteneri Food & Prizes",
+      "logistics": "Parteneri Logistici",
+      "academical": "Parteneri Academici"
+    },
+    "cta": {
+      "titleStart": "Vrei să devii",
+      "titleHighlight": "partener?",
+      "description": "Câștigă vizibilitate în rândul studenților de top de la inginerie și ajută-ne să creăm evenimente educaționale de impact. Hai să discutăm despre cum putem colabora.",
+      "button": "Contactează-ne"
+    }
+  },
+  "faqPage": {
+    "pageTitle": "Întrebări Frecvente | BEST Brașov",
+    "titleStart": "Întrebări",
+    "titleHighlight": "Frecvente",
+    "subtitle": "Tot ce trebuie să știi despre cum te poți alătura grupului nostru local, călătoriile prin Europa și dezvoltarea ta personală.",
+    "expandAll": "Extinde tot",
+    "collapseAll": "Restrânge tot",
+    "cta": {
+      "title": "Mai ai întrebări?",
+      "subtitle": "Nu ai găsit răspunsul pe care îl căutai? Trimite-ne întrebarea ta prin formular sau scrie-ne pe Instagram!",
+      "formBtn": "Întreabă prin Formular",
+      "instaBtn": "Scrie-ne pe Instagram"
+    },
+    "modal": {
+      "title": "Trimite o Întrebare",
+      "loading": "Se încarcă..."
+    },
+    "items": [
+      {
+        "question": "Ce este BEST Brașov?",
+        "answer": "BEST (Board of European Students of Technology) este o organizație studențească non-profit și apolitică. Ajutăm studenții să își dezvolte abilitățile, să călătorească și să interacționeze cu companii din întreaga Europă."
+      },
+      {
+        "question": "Cine se poate înscrie în organizație?",
+        "answer": "Orice student înmatriculat în prezent la Universitatea Transilvania din Brașov poate aplica în timpul perioadelor noastre de recrutare (de obicei toamna și primăvara)."
+      },
+      {
+        "question": "Cursurile și călătoriile sunt cu adevărat gratuite?",
+        "answer": "În mare parte, da! Pentru cursurile BEST, cazarea, mesele și programul academic sunt acoperite de grupul local gazdă. De obicei, plătești doar o taxă modică și transportul."
+      },
+      {
+        "question": "Trebuie să fiu student la IT / Informatică?",
+        "answer": "Absolut deloc! Deși activăm în sfera tehnică, membrii noștri provin de la toate facultățile. Avem nevoie de oameni pasionați de HR, PR, Design, Marketing, Logistică și multe altele."
+      },
+      {
+        "question": "Cât timp implică statutul de membru?",
+        "answer": "Depinde în totalitate de tine. Poți dedica câteva ore pe săptămână sau te poți implica intens în coordonarea unor evenimente mari. Flexibilitatea este esențială, deoarece toți suntem studenți."
+      }
+    ]
+  },
   "eventsPage": {
     "pageTitle": "Evenimente | BEST Brașov",
     "header": {
@@ -30,7 +217,22 @@
     },
     "calendar": {
       "title": "Calendar Evenimente",
-      "moreInfo": "Află mai multe"
+      "moreInfo": "Află mai multe",
+      "daysShort": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
+      "months": [
+        "Ianuarie",
+        "Februarie",
+        "Martie",
+        "Aprilie",
+        "Mai",
+        "Iunie",
+        "Iulie",
+        "August",
+        "Septembrie",
+        "Octombrie",
+        "Noiembrie",
+        "Decembrie"
+      ]
     },
     "publicEvents": {
       "title": "Evenimente Publice",
@@ -44,8 +246,6 @@
       "viewDetails": "Vezi Detalii"
     }
   },
-
-
   "eventsData": {
     "external": {
       "bit": {
@@ -88,8 +288,6 @@
       }
     }
   },
-
-
   "joinUs": {
     "pageTitle": "Alătură-te! | BEST Brașov",
     "hero": {
@@ -99,7 +297,7 @@
       "title1": "Nu fi doar un simplu student.",
       "title2": "Fii the BEST.",
       "subtitle": "Ieși din zona de confort, călătorește prin toată Europa, dezvoltă abilități pe care nu le înveți la cursuri și cunoaște-ți cei mai buni prieteni.",
-      "applyBtn": "Aplică Acum 🚀",
+      "applyBtn": "Aplică Acum",
       "closedTooltip1": "Înscrierile sunt închise momentan.",
       "closedTooltip2": "Recrutările reîncep în toamnă!"
     },
@@ -130,7 +328,8 @@
     },
     "testimonials": {
       "heading": "Ce spun voluntarii noștri?",
-      "pauseHint": "Ține cursorul pentru pauză"
+      "pauseHint": "Ține cursorul sau apasă pentru pauză",
+      "pausedBadge": "Pauză · Apasă pentru continuare"
     },
     "contact": {
       "heading1": "Ai întrebări?",
@@ -155,7 +354,7 @@
         },
         "message": "Mesaj",
         "messagePlaceholder": "Cu ce te putem ajuta?",
-        "submitBtn": "Trimite Mesajul 🚀"
+        "submitBtn": "Trimite Mesajul"
       }
     }
   }

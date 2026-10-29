@@ -19,13 +19,13 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
     <button
       onClick={handleCopy}
       title="Click to copy"
-      className="group flex items-center gap-3 w-full px-3.5 py-2.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/25 transition-all duration-300 text-left"
+      className="group flex items-center gap-3 w-full px-3.5 py-2.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/25 transition-all duration-300 text-left cursor-pointer"
     >
       <div
         className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
           copied
             ? "bg-emerald-500/20 text-emerald-300"
-            : "bg-white/10 text-rose-200 group-hover:bg-white group-hover:text-[#6b1226]"
+            : "bg-white/10 text-rose-200 group-hover:bg-white group-hover:text-[#4F0028]"
         }`}
       >
         {copied ? <Check size={15} /> : <Icon size={15} />}
@@ -47,12 +47,12 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
 };
 
 // ── Arc Navigation Wheel (Locked Drag + Smooth Spring Animation) ─────────────
-const ARC_CX    = 20;   // circle center X
-const ARC_CY    = 120;  // circle center Y
-const ARC_R     = 150;  // radius
-const SPREAD    = 28;   // degrees between items
-const DRAG_PX   = 44;   // control smooth pentru drag
-const SETTLE_MS = 650;  // ms așteptare înainte de navigare auto după eliberare
+const ARC_CX    = 20;
+const ARC_CY    = 120;
+const ARC_R     = 150;
+const SPREAD    = 28;
+const DRAG_PX   = 44;
+const SETTLE_MS = 650;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -183,7 +183,6 @@ const ArcWheel = () => {
     (e) => {
       if (!dragging.current) return;
 
-      // Blochează complet scroll-ul paginii când tragi în sus sau în jos de roată
       if (e.cancelable) {
         e.preventDefault();
       }
@@ -231,10 +230,10 @@ const ArcWheel = () => {
     };
   }, [onMove, onEnd]);
 
-  const activePos   = getPos(0); // { x: 170, y: 120 }
+  const activePos   = getPos(0);
   const arcPath     = `M ${ARC_CX},${ARC_CY - ARC_R + 30} A ${ARC_R},${ARC_R} 0 0,1 ${ARC_CX},${ARC_CY + ARC_R - 30}`;
-  const arcApexX    = ARC_CX + Math.sqrt(ARC_R * ARC_R - (ARC_R - 30) * (ARC_R - 30)); // 110
-  const pointerEndX = activePos.x + 2; // 172
+  const arcApexX    = ARC_CX + Math.sqrt(ARC_R * ARC_R - (ARC_R - 30) * (ARC_R - 30));
+  const pointerEndX = activePos.x + 2;
 
   return (
     <div
@@ -247,7 +246,7 @@ const ArcWheel = () => {
         overscrollBehavior: "contain",
       }}
       onMouseDown={(e) => {
-        e.preventDefault(); // Previne selecția nativă sau drag-scroll-ul la click
+        e.preventDefault();
         onStart(e);
       }}
       onTouchStart={(e) => {
@@ -262,21 +261,18 @@ const ArcWheel = () => {
         style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}
       >
         <defs>
-          {/* Gradient vertical pe linia arcadei */}
           <linearGradient id="arcGrad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.03)" />
             <stop offset="50%" stopColor={isSelecting ? "rgba(251,113,133,0.65)" : "rgba(255,255,255,0.38)"} />
             <stop offset="100%" stopColor="rgba(255,255,255,0.03)" />
           </linearGradient>
 
-          {/* Gradient orizontal pentru raza indicatoare dintre arcadă și text */}
           <linearGradient id="pointerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.15)" />
             <stop offset="100%" stopColor={isSelecting ? "#fda4af" : "rgba(255,255,255,0.9)"} />
           </linearGradient>
         </defs>
 
-        {/* Soft glow pe linia arcadei când rotești */}
         <motion.path
           d={arcPath}
           fill="none"
@@ -290,7 +286,6 @@ const ArcWheel = () => {
           style={{ filter: "blur(4px)" }}
         />
 
-        {/* Linia principală a arcadei */}
         <path
           d={arcPath}
           fill="none"
@@ -299,7 +294,6 @@ const ArcWheel = () => {
           strokeLinecap="round"
         />
 
-        {/* Halo exterior FIX PE LINIA ARCADEI */}
         <motion.circle
           cx={arcApexX}
           cy={ARC_CY}
@@ -313,15 +307,8 @@ const ArcWheel = () => {
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         />
 
-        {/* Bulina albă ancorată exact pe vârful arcadei */}
-        <circle
-          cx={arcApexX}
-          cy={ARC_CY}
-          r="3.5"
-          fill="white"
-        />
+        <circle cx={arcApexX} cy={ARC_CY} r="3.5" fill="white" />
 
-        {/* Conector + Săgeată vectorială (───▸) */}
         <motion.g
           key={`pointer-${activeIdx}`}
           initial={{ x: -5, opacity: 0.5 }}
@@ -348,7 +335,6 @@ const ArcWheel = () => {
         </motion.g>
       </svg>
 
-      {/* Textele paginilor */}
       {visibleOffsets.map((offset) => {
         const idx        = mod(activeIdx + offset, N);
         const pos        = getPos(offset);
@@ -458,7 +444,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-b from-[#6b1226] to-[#4c0b1a] dark:from-gray-950 dark:to-black text-gray-200 pt-14 pb-8 border-t border-white/10 dark:border-gray-900 transition-colors duration-300">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#2a0015] dark:from-[#240404] dark:to-[#0c0101] text-gray-200 pt-14 pb-8 border-t border-white/10 dark:border-rose-950/50 transition-colors duration-300">
       <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-rose-500/10 blur-3xl rounded-full" />
 
       <div className="max-w-[1200px] mx-auto px-6 sm:px-8 relative z-10">
@@ -489,7 +475,6 @@ const Footer = () => {
 
           {/* Dreapta (Contacte & Socials) */}
           <div className="lg:col-span-4 flex flex-col items-center gap-5 w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto lg:-pl-8">
-            {/* Socials */}
             <div className="flex flex-col items-center gap-2.5 w-full">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
                 {t("footer.followUs")}
@@ -502,7 +487,7 @@ const Footer = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={s.name}
-                    className="w-10 h-10 rounded-xl bg-white/[0.07] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-[#6b1226] hover:border-white hover:-translate-y-1 shadow-sm transition-all duration-300"
+                    className="w-10 h-10 rounded-xl bg-white/[0.07] border border-white/10 flex items-center justify-center text-white/80 hover:bg-white hover:text-[#4F0028] hover:border-white hover:-translate-y-1 shadow-sm transition-all duration-300"
                   >
                     {s.svg}
                   </a>
@@ -510,7 +495,6 @@ const Footer = () => {
               </div>
             </div>
 
-            {/* Email & Phone */}
             <div className="flex flex-col gap-2.5 w-full">
               <CopyableContact
                 label="Email"
@@ -531,10 +515,10 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-6 border-t border-white/10 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500">
+        <div className="pt-6 border-t border-white/10 dark:border-rose-950/60 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500">
           <p>{t("footer.rights").replace("{{year}}", year)}</p>
           <p className="flex items-center gap-1.5">
-            {t("footer.madeWith")} <span className="text-rose-400 animate-pulse">❤️</span>{" "}
+            {t("footer.madeWith")} <span className="text-rose-400">♥</span>{" "}
             <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslation } from "react-i18next"; 
+import { useTranslation } from "react-i18next";
 
 const COLORS = ["#ff4d6d", "#ff9f1c", "#2ec4b6", "#4cc9f0", "#f72585", "#ffffff", "#ffd60a"];
 const PARTICLE_COUNT = 40;
@@ -92,7 +92,7 @@ function ConfettiBurst({ origin, onDone }) {
 
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+  }, [origin, onDone]);
 
   return createPortal(
     <canvas
@@ -110,33 +110,78 @@ function ConfettiBurst({ origin, onDone }) {
   );
 }
 
+// ── Pill Switch Unificat EN / RO (Click oriunde pe el schimbă limba) ─────────
+const LanguageSwitch = ({ lang, onToggle, compact = false }) => {
+  const isRO = lang === "RO";
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      aria-label="Toggle language between English and Romanian"
+      className={`relative inline-flex items-center bg-black/25 dark:bg-white/10 border border-white/15 hover:border-white/30 rounded-full p-1 cursor-pointer select-none transition-colors ${
+        compact ? "w-[68px] h-7" : "w-[76px] h-8"
+      }`}
+    >
+      {/* Pastila activă care alunecă stânga-dreapta */}
+      <motion.div
+        initial={false}
+        animate={{ x: isRO ? "100%" : "0%" }}
+        transition={{ type: "spring", stiffness: 420, damping: 28 }}
+        className="w-1/2 h-full rounded-full bg-white dark:bg-[#4F0028] shadow-sm"
+      />
+
+      {/* Etichetele EN și RO */}
+      <div className="absolute inset-0 grid grid-cols-2 items-center text-[10px] sm:text-[11px] font-black tracking-wider">
+        <span
+          className={`text-center transition-colors duration-200 ${
+            !isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
+          }`}
+        >
+          EN
+        </span>
+        <span
+          className={`text-center transition-colors duration-200 ${
+            isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
+          }`}
+        >
+          RO
+        </span>
+      </div>
+    </button>
+  );
+};
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [confettiOrigin, setConfettiOrigin] = useState(null);
-  
+
   const joinBtnRef = useRef(null);
   const location = useLocation();
 
   // ── Inițializare Traduceri ────────────────────────────────────────────────
   const { t, i18n } = useTranslation();
-  
-  // Setăm limba inițială bazat pe ce știe i18next (dacă nu, default e EN)
-  const initialLang = i18n.language ? i18n.language.toUpperCase() : "EN";
-  const [lang, setLang] = useState(initialLang); 
 
-  const handleLangChange = (selectedLang) => {
-    setLang(selectedLang);
-    // Aici se face schimbarea limbii pe tot site-ul
-    i18n.changeLanguage(selectedLang.toLowerCase()); 
+  const initialLang =
+    i18n.language && i18n.language.toLowerCase().startsWith("ro") ? "RO" : "EN";
+  const [lang, setLang] = useState(initialLang);
+
+  // Switch unic: indiferent unde apeși pe el, inversează EN <-> RO
+  const toggleLanguage = () => {
+    const nextLang = lang === "EN" ? "RO" : "EN";
+    setLang(nextLang);
+    i18n.changeLanguage(nextLang.toLowerCase());
   };
 
   // ── Blur ONLY the page content ────────────────────────────────────────────
   useEffect(() => {
     const appRoot = document.getElementById("root")?.firstElementChild;
-
     if (!appRoot) return;
 
     const contentChildren = Array.from(appRoot.children).filter(
@@ -175,17 +220,17 @@ const Navbar = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (window.isAutoScrolling) {
         setIsVisible(true);
         setLastScrollY(currentScrollY);
-        return; 
+        return;
       }
 
       setIsVisible(!(currentScrollY > lastScrollY && currentScrollY > 100));
       setLastScrollY(currentScrollY);
     };
-    
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
@@ -223,7 +268,7 @@ const Navbar = () => {
     });
   }, []);
 
-  // ── Nav Links (Traduse dinamic) ───────────────────────────────────────────
+  // ── Nav Links ─────────────────────────────────────────────────────────────
   const navLinks = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.events"), path: "/events" },
@@ -235,7 +280,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Confetti burst */}
       {confettiOrigin && (
         <ConfettiBurst
           origin={confettiOrigin}
@@ -247,13 +291,16 @@ const Navbar = () => {
       <nav
         className={`fixed top-0 left-0 w-full z-50 backdrop-blur-md shadow-lg border-b transition-transform duration-300
           ${isVisible ? "translate-y-0" : "-translate-y-full"}
-          ${isDarkMode ? "bg-gray-950/90 border-gray-800" : "bg-[#8b1832]/95 border-white/10"}`}
+          ${
+            isDarkMode
+              ? "bg-[#180202]/95 border-rose-950/60"
+              : "bg-[#4F0028]/95 border-white/10"
+          }`}
       >
         <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 2xl:px-24">
           <div className="flex justify-between items-center h-24">
-
             {/* Logo + Controls */}
-            <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0 z-50">
+            <div className="flex items-center gap-4 sm:gap-5 flex-shrink-0 z-50">
               <Link to="/" className="flex items-center cursor-pointer">
                 <img
                   src="/images/logos/logo-BestBV.png"
@@ -262,37 +309,21 @@ const Navbar = () => {
                 />
               </Link>
 
-              {/* Traductor Minimalist EN | RO (Desktop) */}
-              <div className="hidden sm:flex items-center gap-1.5 text-xs font-black tracking-widest text-white/50">
-                <button 
-                  onClick={() => handleLangChange("EN")}
-                  className={`transition-colors duration-300 hover:scale-105 ${
-                    lang === "EN" ? "text-white" : "hover:text-white/80"
-                  }`}
-                >
-                  EN
-                </button>
-                <span>/</span>
-                <button 
-                  onClick={() => handleLangChange("RO")}
-                  className={`transition-colors duration-300 hover:scale-105 ${
-                    lang === "RO" ? "text-white" : "hover:text-white/80"
-                  }`}
-                >
-                  RO
-                </button>
+              {/* Switch Traducere EN | RO (Desktop & Tabletă) */}
+              <div className="hidden sm:flex items-center">
+                <LanguageSwitch lang={lang} onToggle={toggleLanguage} />
               </div>
 
               {/* Toggle Dark/Light Mode */}
               <button
                 onClick={toggleDarkMode}
-                className="p-2 text-white dark:text-gray-400 hover:bg-white/20 rounded-full transition-colors"
+                className="p-2 text-white dark:text-gray-300 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             </div>
 
-            {/* Desktop links - VIZIBIL DE LA LG (LAPTOP) ÎN SUS */}
+            {/* Desktop links */}
             <div className="hidden lg:flex space-x-6 items-center">
               {navLinks.map((link) => {
                 const isActive = location.pathname === link.path;
@@ -300,14 +331,14 @@ const Navbar = () => {
                   <Link
                     key={link.name}
                     to={link.path}
-                    className="relative group py-2 text-rose-50 dark:text-gray-300 hover:text-white text-sm font-bold transition-colors"
+                    className="relative group py-2 text-rose-50 dark:text-gray-200 hover:text-white text-sm font-bold transition-colors"
                   >
                     {link.name}
                     <span
-                      className={`absolute bottom-0 left-0 h-0.5 bg-white dark:bg-rose-500 rounded-full transition-all duration-300 ${
+                      className={`absolute bottom-0 left-0 h-0.5 bg-white dark:bg-rose-400 rounded-full transition-all duration-300 ${
                         isActive ? "w-full" : "w-0 group-hover:w-full"
                       }`}
-                    ></span>
+                    />
                   </Link>
                 );
               })}
@@ -316,32 +347,26 @@ const Navbar = () => {
                 to="/join"
                 ref={joinBtnRef}
                 onMouseEnter={triggerConfetti}
-                className="relative inline-flex items-center px-6 py-2.5 ml-2 text-sm font-bold text-[#8b1832] dark:text-white bg-white dark:bg-rose-700 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-1"
+                onClick={triggerConfetti}
+                className="relative inline-flex items-center px-6 py-2.5 ml-2 text-sm font-bold text-[#4F0028] dark:text-white bg-white dark:bg-[#4F0028] rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-1"
               >
                 <span className="relative z-10">{t("nav.join")}</span>
               </Link>
             </div>
 
-            {/* Hamburger - VIZIBIL ȘI PE TABLETĂ (PÂNĂ LA LG) */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden text-white p-2 z-50 flex items-center gap-4"
-            >
-              {/* Traductor pentru Mobile (lângă hamburger) */}
-              <div className="sm:hidden flex items-center gap-1 text-[10px] font-black tracking-widest text-white/50 mr-2">
-                <span 
-                  onClick={(e) => { e.stopPropagation(); handleLangChange("EN"); }}
-                  className={`${lang === "EN" ? "text-white" : ""}`}
-                >EN</span>
-                <span>/</span>
-                <span 
-                  onClick={(e) => { e.stopPropagation(); handleLangChange("RO"); }}
-                  className={`${lang === "RO" ? "text-white" : ""}`}
-                >RO</span>
+            {/* Hamburger + Mobile Language Switch */}
+            <div className="lg:hidden flex items-center gap-3 z-50">
+              <div className="sm:hidden flex items-center">
+                <LanguageSwitch lang={lang} onToggle={toggleLanguage} compact />
               </div>
-              
-              {isOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
+
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-white p-2 cursor-pointer"
+              >
+                {isOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -353,7 +378,7 @@ const Navbar = () => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className={`lg:hidden absolute top-24 left-0 w-full border-t border-white/10 overflow-hidden z-50
-                ${isDarkMode ? "bg-gray-950/95" : "bg-[#8b1832]/95"}`}
+                ${isDarkMode ? "bg-[#180202]/95" : "bg-[#4F0028]/95"}`}
             >
               <div className="grid grid-cols-2 gap-3 p-6 sm:max-w-2xl sm:mx-auto">
                 {navLinks.map((link) => {
@@ -365,7 +390,7 @@ const Navbar = () => {
                       onClick={() => setIsOpen(false)}
                       className={`text-center py-4 rounded-xl font-bold text-sm transition-all ${
                         isActive
-                          ? "bg-white/25 dark:bg-gray-800 text-white border-2 border-white/40 dark:border-rose-500 shadow-sm"
+                          ? "bg-white/25 dark:bg-[#320606] text-white border-2 border-white/40 dark:border-rose-400 shadow-sm"
                           : "bg-white/10 text-white hover:bg-white/20"
                       }`}
                     >
@@ -375,11 +400,14 @@ const Navbar = () => {
                 })}
               </div>
               <div className="px-6 pb-8 sm:max-w-2xl sm:mx-auto">
+                {/* [MOBIL] Declanșează tot timpul Confetti la apăsare (onClick) */}
                 <Link
                   to="/join"
-                  onClick={() => setIsOpen(false)}
-                  onMouseEnter={triggerConfetti}
-                  className="w-full bg-white dark:bg-rose-700 text-[#8b1832] dark:text-white py-4 rounded-2xl font-black text-center block shadow-xl"
+                  onClick={(e) => {
+                    triggerConfetti(e);
+                    setIsOpen(false);
+                  }}
+                  className="w-full bg-white dark:bg-[#4F0028] text-[#4F0028] dark:text-white py-4 rounded-2xl font-black text-center block shadow-xl active:scale-95 transition-transform"
                 >
                   {t("nav.join")}
                 </Link>

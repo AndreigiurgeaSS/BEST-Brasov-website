@@ -18,7 +18,7 @@ export const externalEvents = [
     descKey: "eventsData.external.btw.desc",
     image: "/images/events/btw.png",
     link: "https://btw.bestbrasov.ro",
-    date: new Date(new Date().getFullYear(), new Date().getMonth(), 29).toISOString().split('T')[0] // Example date: 2026-09-29
+    date: new Date(new Date().getFullYear(), new Date().getMonth(), 31).toISOString().split('T')[0] // Example date: 2026-09-29
   },
   {
     titleKey: "eventsData.external.bcds.title",
