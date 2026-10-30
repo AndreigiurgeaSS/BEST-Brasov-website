@@ -495,6 +495,8 @@ const Footer = () => {
               </div>
             </div>
 
+
+            {/* NUMAR DE TELEFON (cand trebuie schimbat) */}
             <div className="flex flex-col gap-2.5 w-full">
               <CopyableContact
                 label="Email"
@@ -505,8 +507,8 @@ const Footer = () => {
               />
               <CopyableContact
                 label="Phone"
-                value="+40764468602"
-                displayValue="+40 764 468 602"
+                value="+40730827778"
+                displayValue="+40 730 827 778"
                 Icon={Phone}
                 copiedText={t("footer.copied")}
               />
@@ -518,7 +520,7 @@ const Footer = () => {
         <div className="pt-6 border-t border-white/10 dark:border-rose-950/60 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500">
           <p>{t("footer.rights").replace("{{year}}", year)}</p>
           <p className="flex items-center gap-1.5">
-            {t("footer.madeWith")} <span className="text-rose-400">♥</span>{" "}
+            {t("footer.madeWith")} <span className="text-rose-400">🩷</span>{" "}
             <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>

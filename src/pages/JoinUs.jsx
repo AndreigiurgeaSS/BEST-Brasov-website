@@ -656,10 +656,13 @@ const JoinUs = () => {
                     value="bv-board@BEST-eu.org"
                     Icon={Mail}
                   />
+
+              {/* NUMAR DE TELEFON (cand trebuie schimbat) */}
+
                   <ContactBox
                     label={t("joinUs.contact.phoneLabel")}
-                    value="+40764468602"
-                    displayValue="+40 764 468 602"
+                    value="+40 730 827 778"
+                    displayValue="+40 730 827 778"
                     Icon={Phone}
                   />
                   <div className="flex items-start gap-3 px-4 py-2">
