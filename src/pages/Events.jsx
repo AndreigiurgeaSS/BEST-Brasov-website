@@ -1,349 +1,538 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowRight, Globe, Users, Calendar } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  ArrowUpRight,
+  Globe,
+  Users,
+  Compass,
+  Sun,
+  MapPin,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { externalEvents, internalEvents } from "../data/eventsData";
+import {
+  externalEvents,
+  internalEvents,
+  calendarHighlights,
+} from "../data/eventsData";
 
-const FALLBACK_DAYS_SUN_FIRST = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const FALLBACK_MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+const FALLBACK_WD_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const FALLBACK_WD_RO = ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"];
 
-// ── Calendar Strip (Banda orizontală cu Preview Panel) ────────────────────────
-const CalendarStrip = ({ events }) => {
-  const { t, i18n } = useTranslation();
-  const today = new Date();
-  const [viewYear, setViewYear]   = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [activeDay, setActiveDay] = useState(today.getDate());
-  const stripRef = useRef(null);
+const TYPE_COLOR = { public: "#3b82f6", internal: "#e11d48", intl: "#f59e0b" };
+const pad = (n) => String(n).padStart(2, "0");
+const toKey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
-  const isRO = i18n.language && i18n.language.toLowerCase().startsWith("ro");
-  const daysShortSunFirst = isRO
-    ? ["Dum", "Lun", "Mar", "Mie", "Joi", "Vin", "Sâm"]
-    : FALLBACK_DAYS_SUN_FIRST;
-
-  const translatedMonths = t("eventsPage.calendar.months", { returnObjects: true });
-  const months = Array.isArray(translatedMonths) ? translatedMonths : FALLBACK_MONTHS;
-
-  const eventMap = new Map();
-  events.forEach((e) => {
-    if (!e.date) return;
-    const d = new Date(e.date);
-    if (d.getFullYear() === viewYear && d.getMonth() === viewMonth) {
-      eventMap.set(d.getDate(), e);
+// Expandează un eveniment care are `date`, `dates: [...]` sau `startDate` + `endDate`
+function expandEventDates(item) {
+  const results = [];
+  if (item.date) {
+    results.push(item.date);
+  }
+  if (Array.isArray(item.dates)) {
+    item.dates.forEach((d) => {
+      if (d && !results.includes(d)) results.push(d);
+    });
+  }
+  if (item.startDate && item.endDate) {
+    const [sy, sm, sd] = item.startDate.split("-").map(Number);
+    const [ey, em, ed] = item.endDate.split("-").map(Number);
+    const cur = new Date(sy, sm - 1, sd);
+    const end = new Date(ey, em - 1, ed);
+    let guard = 0;
+    while (cur <= end && guard < 120) {
+      const k = toKey(cur.getFullYear(), cur.getMonth(), cur.getDate());
+      if (!results.includes(k)) results.push(k);
+      cur.setDate(cur.getDate() + 1);
+      guard++;
     }
+  }
+  return results;
+}
+
+// ── Header de secțiune ───────────────────────────────────────────────────────
+const SectionHeader = ({ icon: Icon, title, subtitle }) => (
+  <div className="flex flex-col items-center text-center mb-10">
+    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1e0404] shadow-md border border-gray-100 dark:border-rose-950/60 flex items-center justify-center text-[#4F0028] dark:text-rose-400 mb-4">
+      <Icon size={28} />
+    </div>
+    <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">{title}</h2>
+    <p className="text-gray-500 dark:text-gray-400 max-w-lg">{subtitle}</p>
+  </div>
+);
+
+// ── Calendar complet + panou de agendă (Optimizat Mobil & Desktop) ───────────
+const CalendarSection = ({ events }) => {
+  const { t, i18n } = useTranslation();
+  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
+
+  const monthsT = t("eventsPage.calendar.months", { returnObjects: true });
+  const months = Array.isArray(monthsT) ? monthsT : FALLBACK_MONTHS;
+  const wdT = t("eventsPage.calendar.weekdays", { returnObjects: true });
+  const weekdays = Array.isArray(wdT) ? wdT : isRO ? FALLBACK_WD_RO : FALLBACK_WD_EN;
+
+  const now = new Date();
+  const todayKey = toKey(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Expandăm toate evenimentele pe fiecare zi pe care o ocupă
+  const dated = useMemo(() => {
+    const list = [];
+    events.forEach((e) => {
+      const days = expandEventDates(e);
+      days.forEach((dKey) => {
+        list.push({ ...e, date: dKey });
+      });
+    });
+    return list.sort((a, b) => a.date.localeCompare(b.date));
+  }, [events]);
+
+  const byDate = useMemo(() => {
+    const acc = {};
+    dated.forEach((e) => {
+      (acc[e.date] = acc[e.date] || []).push(e);
+    });
+    return acc;
+  }, [dated]);
+
+  // Lunile care conțin evenimente (pentru butoanele de salt rapid)
+  const eventMonths = useMemo(() => {
+    const map = new Map();
+    dated.forEach((e) => {
+      const [y, m] = e.date.split("-").map(Number);
+      const id = `${y}-${pad(m)}`;
+      if (!map.has(id)) {
+        map.set(id, { id, y, m: m - 1, firstDate: e.date });
+      }
+    });
+    return Array.from(map.values());
+  }, [dated]);
+
+  const startKey = (dated.find((e) => e.date >= todayKey) || {}).date || todayKey;
+  const [sel, setSel] = useState(startKey);
+  const [view, setView] = useState(() => {
+    const [y, m] = startKey.split("-").map(Number);
+    return { y, m: m - 1 };
   });
 
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const activeEvent = activeDay ? eventMap.get(activeDay) : null;
-
-  const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((y) => y - 1);
-    } else setViewMonth((m) => m - 1);
-    setActiveDay(null);
+  const shiftMonth = (delta) => {
+    const d = new Date(view.y, view.m + delta, 1);
+    setView({ y: d.getFullYear(), m: d.getMonth() });
   };
 
-  const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((y) => y + 1);
-    } else setViewMonth((m) => m + 1);
-    setActiveDay(null);
+  const goTo = (key) => {
+    const [y, m] = key.split("-").map(Number);
+    setView({ y, m: m - 1 });
+    setSel(key);
   };
 
-  useEffect(() => {
-    if (!stripRef.current) return;
-    const activeEl = stripRef.current.querySelector("[data-active='true']");
-    if (activeEl) {
-      activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-    }
-  }, [activeDay, viewMonth]);
+  const getEventTitle = (e) => {
+    if (isRO && e.titleRO) return e.titleRO;
+    if (!isRO && e.titleEN) return e.titleEN;
+    if (e.title) return e.title;
+    return t(e.titleKey);
+  };
 
-  useEffect(() => {
-    if (!stripRef.current) return;
-    const todayEl = stripRef.current.querySelector("[data-today='true']");
-    if (todayEl) {
-      todayEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  const getEventDesc = (e) => {
+    if (isRO && e.descRO) return e.descRO;
+    if (!isRO && e.descEN) return e.descEN;
+    if (e.desc) return e.desc;
+    return t(e.descKey);
+  };
+
+  const lead = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
+  const dim = new Date(view.y, view.m + 1, 0).getDate();
+
+  const [sy, sm, sd] = sel.split("-").map(Number);
+  const weekdayLong = new Date(sy, sm - 1, sd).toLocaleDateString(
+    isRO ? "ro-RO" : "en-GB",
+    { weekday: "long" }
+  );
+  const dayEvents = byDate[sel] || [];
+
+  // La upcoming afișăm evenimente unice după titlu
+  const upcoming = useMemo(() => {
+    const seen = new Set();
+    const res = [];
+    for (const e of dated) {
+      if (e.date > sel) {
+        const id = e.titleKey || e.titleRO || e.titleEN || e.date;
+        if (!seen.has(id)) {
+          seen.add(id);
+          res.push(e);
+        }
+      }
+      if (res.length >= 3) break;
     }
-  }, []);
+    return res;
+  }, [dated, sel]);
+
+  const nextEvent = upcoming[0];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mb-20 max-w-4xl mx-auto"
+      className="mb-24 sm:mb-28 max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] bg-white dark:bg-[#1e0404] rounded-[2rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden"
     >
-      <div className="bg-white dark:bg-[#1e0404] rounded-3xl rounded-b-none shadow-sm border border-gray-100 dark:border-rose-950/60 p-5 transition-colors duration-300 z-10 relative">
-        <div className="flex items-center justify-between mb-4 px-2">
+      {/* Stânga: Grila lunii (compactă pe mobil ca să se vadă toată luna dintr-un foc) */}
+      <div className="p-4 sm:p-7">
+        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400 mb-0.5">
-              {t("eventsPage.calendar.title")}
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+              {t("eventsPage.calendar.title", {
+                defaultValue: isRO ? "Calendar Evenimente" : "Event Calendar",
+              })}
             </p>
-            <p className="text-xl font-black text-gray-900 dark:text-white transition-colors">
-              {months[viewMonth]} {viewYear}
+            <p className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+              {months[view.m]} {view.y}
             </p>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-1.5">
             <button
-              onClick={prevMonth}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-rose-950/60 text-gray-500 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white hover:border-[#4F0028] transition-all duration-200 cursor-pointer"
+              onClick={() => goTo(todayKey)}
+              className="px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-rose-950/60 text-[11px] font-bold text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white hover:border-[#4F0028] transition-all cursor-pointer"
             >
-              <ChevronLeft size={18} />
+              {isRO ? "Azi" : "Today"}
             </button>
-            <button
-              onClick={nextMonth}
-              className="p-2.5 rounded-xl border border-gray-200 dark:border-rose-950/60 text-gray-500 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white hover:border-[#4F0028] transition-all duration-200 cursor-pointer"
-            >
-              <ChevronRight size={18} />
-            </button>
+            {[
+              [-1, ChevronLeft],
+              [1, ChevronRight],
+            ].map(([delta, Icon]) => (
+              <button
+                key={delta}
+                onClick={() => shiftMonth(delta)}
+                className="p-2 sm:p-2.5 rounded-xl border border-gray-200 dark:border-rose-950/60 text-gray-500 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white hover:border-[#4F0028] transition-all cursor-pointer"
+              >
+                <Icon size={17} />
+              </button>
+            ))}
           </div>
         </div>
 
-        <div
-          ref={stripRef}
-          className="flex gap-2.5 overflow-x-auto pb-2 px-2 scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-            const date     = new Date(viewYear, viewMonth, day);
-            const dayName  = daysShortSunFirst[date.getDay()];
-            const isToday  =
-              day === today.getDate() &&
-              viewMonth === today.getMonth() &&
-              viewYear === today.getFullYear();
-            const hasEvent = eventMap.has(day);
-            const isActive = day === activeDay;
+        {/* Salt rapid la lunile care au evenimente */}
+        {eventMonths.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-hide">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mr-1 flex items-center gap-1">
+              <CalendarIcon size={11} />
+              {isRO ? "Salt la:" : "Jump to:"}
+            </span>
+            {eventMonths.map((em) => {
+              const isCurrentView = em.y === view.y && em.m === view.m;
+              return (
+                <button
+                  key={em.id}
+                  onClick={() => goTo(em.firstDate)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                    isCurrentView
+                      ? "bg-[#4F0028] text-white shadow-sm"
+                      : "bg-rose-50/70 dark:bg-rose-950/40 text-[#4F0028] dark:text-rose-300 hover:bg-[#4F0028]/15"
+                  }`}
+                >
+                  {months[em.m].slice(0, 3)} {em.y}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
+        {/* Zilele săptămânii */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-1">
+          {weekdays.map((w) => (
+            <span
+              key={w}
+              className="text-center text-[10px] font-bold uppercase tracking-wider sm:tracking-widest text-gray-400 dark:text-gray-500 py-1"
+            >
+              {w}
+            </span>
+          ))}
+        </div>
+
+        {/* Zilele lunii — h-10 pe mobil și sm:aspect-square pe desktop */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+          {Array.from({ length: lead }).map((_, i) => (
+            <div key={`b${i}`} className="h-10 sm:h-auto sm:aspect-square" />
+          ))}
+          {Array.from({ length: dim }, (_, i) => i + 1).map((day) => {
+            const key = toKey(view.y, view.m, day);
+            const evs = byDate[key] || [];
+            const isSel = key === sel;
+            const isToday = key === todayKey;
             return (
               <button
-                key={day}
-                data-active={isActive}
-                data-today={isToday}
-                onClick={() => setActiveDay(isActive ? null : day)}
-                className={`flex flex-col items-center gap-1.5 min-w-[54px] px-1 py-3 rounded-[1.25rem] border flex-shrink-0 transition-all duration-300 cursor-pointer
+                key={key}
+                onClick={() => setSel(key)}
+                className={`h-10 sm:h-auto sm:aspect-square rounded-xl border flex flex-col items-center justify-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer
                   ${
-                    isActive
-                      ? hasEvent
-                        ? "bg-gradient-to-br from-blue-500 to-indigo-600 border-transparent shadow-lg shadow-blue-500/40 scale-105"
-                        : "bg-[#4F0028] border-[#4F0028] shadow-lg shadow-[#4F0028]/35 scale-105"
+                    isSel
+                      ? "bg-[#4F0028] border-[#4F0028] text-white shadow-md shadow-[#4F0028]/40 scale-[1.04]"
                       : isToday
-                        ? "border-[#4F0028]/40 bg-rose-50 dark:bg-[#2d0707]"
-                        : hasEvent
-                          ? "border-blue-400/50 dark:border-blue-400/30 bg-blue-50/60 dark:bg-blue-950/30 hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/40 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
-                          : "border-transparent hover:bg-gray-50 dark:hover:bg-[#2a0505] hover:border-gray-200 dark:hover:border-rose-950"
+                        ? "border-[#4F0028] dark:border-rose-400 text-[#4F0028] dark:text-rose-300 bg-rose-50/40 dark:bg-rose-950/20"
+                        : evs.length
+                          ? "border-[#4F0028]/20 dark:border-rose-400/20 bg-rose-50/80 dark:bg-rose-950/40 text-gray-900 dark:text-white hover:border-[#4F0028]/50"
+                          : "border-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a0505] hover:border-gray-200 dark:hover:border-rose-950"
                   }`}
               >
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                    isActive
-                      ? "text-white/90"
-                      : hasEvent
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-400 dark:text-gray-500"
-                  }`}
-                >
-                  {dayName}
+                <span className="leading-none">{day}</span>
+                <span className="flex gap-0.5 h-1.5 items-center">
+                  {evs.slice(0, 3).map((e, i) => (
+                    <i
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full block"
+                      style={{ background: isSel ? "#fff" : TYPE_COLOR[e.type] }}
+                    />
+                  ))}
                 </span>
-                <span
-                  className={`text-base font-black leading-none transition-colors ${
-                    isActive
-                      ? "text-white"
-                      : isToday
-                        ? "text-[#4F0028] dark:text-rose-300"
-                        : hasEvent
-                          ? "text-blue-700 dark:text-blue-300"
-                          : "text-gray-800 dark:text-gray-200"
-                  }`}
-                >
-                  {String(day).padStart(2, "0")}
-                </span>
-                <span
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    hasEvent
-                      ? isActive
-                        ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]"
-                        : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)]"
-                      : "bg-transparent"
-                  }`}
-                />
               </button>
             );
           })}
         </div>
       </div>
 
-      <AnimatePresence>
-        {activeEvent && (
+      {/* Dreapta: Panou Agendă */}
+      <div className="relative bg-gradient-to-br from-[#4F0028] to-[#1e0404] text-white p-5 sm:p-7 flex flex-col gap-4 min-h-[340px] lg:min-h-[440px] overflow-hidden">
+        <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <span className="text-4xl sm:text-5xl font-black leading-none">{sd}</span>
+          <div className="text-xs text-white/65 leading-snug">
+            <strong className="block text-sm text-white capitalize">{weekdayLong}</strong>
+            {months[sm - 1]} {sy}
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, height: 0, y: -20 }}
-            animate={{ opacity: 1, height: "auto", y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#220404] dark:to-[#180202] border border-t-0 border-blue-100 dark:border-rose-950/60 rounded-b-3xl -mt-2 relative z-0"
+            key={sel}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="relative flex flex-col gap-3"
           >
-            <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative">
-              <div className="absolute top-0 right-10 w-32 h-32 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
-              <div className="flex-1 relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar size={18} className="text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-xl font-black text-blue-900 dark:text-white">
-                    {t(activeEvent.titleKey)}
-                  </h3>
-                </div>
-                <p className="text-sm text-blue-900/70 dark:text-gray-300 line-clamp-2 md:line-clamp-3 max-w-2xl leading-relaxed font-medium">
-                  {t(activeEvent.descKey)}
-                </p>
-              </div>
-              {activeEvent.link && (
-                <a
-                  href={activeEvent.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-0.5 group/link relative z-10"
+            {dayEvents.length ? (
+              dayEvents.slice(0, 2).map((e, i) => (
+                <div
+                  key={i}
+                  className="bg-white/10 border border-white/15 rounded-2xl p-4 flex flex-col gap-2"
                 >
-                  {t("eventsPage.calendar.moreInfo")}
-                  <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-                </a>
-              )}
-            </div>
+                  <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest bg-white/10 rounded-full px-2.5 py-1 w-fit">
+                    <i
+                      className="w-1.5 h-1.5 rounded-full block"
+                      style={{ background: TYPE_COLOR[e.type] }}
+                    />
+                    {t(`eventsPage.calendar.legend.${e.type}`)}
+                  </span>
+                  <p className="text-base sm:text-lg font-black leading-tight line-clamp-1">
+                    {getEventTitle(e)}
+                  </p>
+                  <p className="text-xs text-white/75 leading-relaxed line-clamp-2">
+                    {getEventDesc(e)}
+                  </p>
+                  {e.link && (
+                    <a
+                      href={e.link}
+                      target={e.link.startsWith("http") ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-white text-[#4F0028] text-xs font-bold px-4 py-2 rounded-xl w-fit hover:translate-x-1 transition-transform"
+                    >
+                      {t("eventsPage.calendar.moreInfo")} <ArrowRight size={14} />
+                    </a>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="border border-dashed border-white/25 rounded-2xl p-4 text-xs text-white/75 leading-relaxed flex flex-col items-start gap-3">
+                {t("eventsPage.calendar.nothingPlanned")}
+                {nextEvent && (
+                  <button
+                    onClick={() => goTo(nextEvent.date)}
+                    className="inline-flex items-center gap-1.5 bg-white text-[#4F0028] text-xs font-bold px-4 py-2 rounded-xl hover:translate-x-1 transition-transform cursor-pointer"
+                  >
+                    {t("eventsPage.calendar.next")}: {getEventTitle(nextEvent)}{" "}
+                    <ArrowRight size={14} />
+                  </button>
+                )}
+              </div>
+            )}
           </motion.div>
+        </AnimatePresence>
+
+        {upcoming.length > 0 && (
+          <div className="relative flex flex-col gap-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50 mb-1">
+              {t("eventsPage.calendar.upcoming")}
+            </p>
+            {upcoming.map((e, i) => {
+              const [, em, ed] = e.date.split("-").map(Number);
+              return (
+                <button
+                  key={i}
+                  onClick={() => goTo(e.date)}
+                  className="flex items-center gap-3 rounded-xl px-2 py-1.5 text-left hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <span className="min-w-[38px] text-center bg-white/10 rounded-lg py-1 leading-none">
+                    <b className="block text-sm">{ed}</b>
+                    <small className="text-[8px] uppercase tracking-wider text-white/60">
+                      {months[em - 1].slice(0, 3)}
+                    </small>
+                  </span>
+                  <span className="flex-1 text-sm font-semibold line-clamp-1">
+                    {getEventTitle(e)}
+                  </span>
+                  <i
+                    className="w-1.5 h-1.5 rounded-full block"
+                    style={{ background: TYPE_COLOR[e.type] }}
+                  />
+                </button>
+              );
+            })}
+          </div>
         )}
-      </AnimatePresence>
+
+        <div className="relative mt-auto pt-3 border-t border-white/10 flex flex-wrap gap-x-4 gap-y-1">
+          {["public", "internal", "intl"].map((k) => (
+            <span key={k} className="flex items-center gap-1.5 text-[10px] text-white/70">
+              <i
+                className="w-1.5 h-1.5 rounded-full block"
+                style={{ background: TYPE_COLOR[k] }}
+              />
+              {t(`eventsPage.calendar.legend.${k}`)}
+            </span>
+          ))}
+        </div>
+      </div>
     </motion.div>
   );
 };
 
-// ── Redesigned Sleek Carousel ────────────────────────────────────────────────
+// ── Carusel cu dimensiune strict fixă (nu se lărgește după poză sau text) ─────
 const SingleItemCarousel = ({ events, showButton = true }) => {
   const { t } = useTranslation();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStartX, setTouchStartX]   = useState(null);
-  const [touchEndX, setTouchEndX]       = useState(null);
+  const [idx, setIdx] = useState(0);
+  const [tx0, setTx0] = useState(null);
+  const [tx1, setTx1] = useState(null);
 
   useEffect(() => {
     if (!events || events.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev === events.length - 1 ? 0 : prev + 1));
-    }, 11000);
+    const timer = setInterval(
+      () => setIdx((p) => (p === events.length - 1 ? 0 : p + 1)),
+      11000
+    );
     return () => clearInterval(timer);
-  }, [events, currentIndex]);
+  }, [events, idx]);
 
   if (!events || events.length === 0) return null;
 
-  const nextSlide = () => setCurrentIndex((prev) => (prev === events.length - 1 ? 0 : prev + 1));
-  const prevSlide = () => setCurrentIndex((prev) => (prev === 0 ? events.length - 1 : prev - 1));
-
-  const handleTouchStart = (e) => {
-    setTouchEndX(null);
-    setTouchStartX(e.targetTouches[0].clientX);
+  const next = () => setIdx((p) => (p === events.length - 1 ? 0 : p + 1));
+  const prev = () => setIdx((p) => (p === 0 ? events.length - 1 : p - 1));
+  const onEnd = () => {
+    if (!tx0 || !tx1) return;
+    const d = tx0 - tx1;
+    if (d > 50) next();
+    if (d < -50) prev();
   };
-  const handleTouchMove = (e) => setTouchEndX(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
-    const distance = touchStartX - touchEndX;
-    if (distance > 50) nextSlide();
-    if (distance < -50) prevSlide();
-  };
+  const ev = events[idx];
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto group">
+    <div className="w-full max-w-5xl mx-auto">
       <div
-        className="bg-white dark:bg-[#1e0404] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden flex flex-col md:flex-row min-h-[400px] transition-colors duration-300 relative"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className="bg-white dark:bg-[#1e0404] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden flex flex-col md:flex-row h-[560px] md:h-[440px] w-full transition-colors duration-300"
+        onTouchStart={(e) => {
+          setTx1(null);
+          setTx0(e.targetTouches[0].clientX);
+        }}
+        onTouchMove={(e) => setTx1(e.targetTouches[0].clientX)}
+        onTouchEnd={onEnd}
       >
-        {/* Content Side (Left) */}
-        <div className="w-full md:w-1/2 p-8 md:p-14 flex flex-col justify-center relative order-2 md:order-1 bg-white dark:bg-[#1e0404]">
+        {/* Partea Stângă: Text cu înălțime controlată */}
+        <div className="w-full md:w-1/2 h-[330px] md:h-full p-7 sm:p-8 md:p-12 flex flex-col justify-between relative order-2 md:order-1 shrink-0 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
-              key={`text-${currentIndex}`}
-              initial={{ opacity: 0, y: 15 }}
+              key={`t-${idx}`}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.4 }}
-              className="flex-grow flex flex-col justify-center mb-8 md:mb-4"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35 }}
+              className="flex flex-col justify-center flex-1 min-h-0 overflow-hidden"
             >
-              <h3 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight">
-                {t(events[currentIndex].titleKey)}
+              <h3 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 tracking-tight leading-tight truncate">
+                {t(ev.titleKey)}
               </h3>
-              <p className="text-gray-500 dark:text-gray-300 text-sm md:text-base leading-relaxed mb-8">
-                {t(events[currentIndex].descKey)}
+              <p className="text-gray-500 dark:text-gray-300 text-sm md:text-[15px] leading-relaxed mb-5 line-clamp-4">
+                {t(ev.descKey)}
               </p>
-
-              {showButton && events[currentIndex].link && (
-                <div className="flex flex-wrap items-center gap-4">
-                  <a
-                    href={events[currentIndex].link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-white bg-[#4F0028] hover:bg-[#320606] px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-[#4F0028]/20 hover:shadow-[#4F0028]/40 hover:-translate-y-0.5 group/btn"
-                  >
-                    {t("eventsPage.carousel.viewDetails")}
-                    <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform" />
-                  </a>
-                </div>
+              {showButton && ev.link && (
+                <a
+                  href={ev.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 w-fit text-white bg-[#4F0028] hover:bg-[#320606] px-6 py-3 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-[#4F0028]/20 hover:-translate-y-0.5 group/btn"
+                >
+                  {t("eventsPage.carousel.viewDetails")}
+                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                </a>
               )}
             </motion.div>
           </AnimatePresence>
 
-          {/* Dots Indicator & Desktop Arrows Container */}
-          <div className="absolute bottom-6 md:bottom-10 left-8 md:left-14 right-8 md:right-14 flex items-center justify-between z-20">
+          {/* Navigație carusel jos */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-rose-950/40 shrink-0">
             <div className="flex items-center gap-2">
-              {events.map((_, index) => (
+              {events.map((_, i) => (
                 <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`transition-all duration-500 h-1.5 rounded-full ${
-                    index === currentIndex
+                  key={i}
+                  onClick={() => setIdx(i)}
+                  className={`transition-all duration-500 h-1.5 rounded-full cursor-pointer ${
+                    i === idx
                       ? "bg-[#4F0028] dark:bg-rose-400 w-8"
                       : "bg-gray-200 dark:bg-rose-950 w-2 hover:bg-gray-300"
                   }`}
                 />
               ))}
             </div>
-
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={prevSlide}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-[#140202] border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white transition-all shadow-sm cursor-pointer"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 dark:bg-[#140202] border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white transition-all shadow-sm cursor-pointer"
-              >
-                <ChevronRight size={20} />
-              </button>
+            <div className="flex items-center gap-2">
+              {[
+                [prev, ChevronLeft],
+                [next, ChevronRight],
+              ].map(([fn, Icon], i) => (
+                <button
+                  key={i}
+                  onClick={fn}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 dark:bg-[#140202] border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white transition-all shadow-sm cursor-pointer"
+                >
+                  <Icon size={18} />
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Image Side (Right) */}
-        <div className="w-full md:w-1/2 h-[280px] md:h-auto md:min-h-full bg-gradient-to-br from-[#4F0028] to-[#320606] dark:from-[#320606] dark:to-[#140202] p-8 flex items-center justify-center relative overflow-hidden order-1 md:order-2 border-b md:border-b-0 md:border-l border-[#4F0028]/20 dark:border-rose-950/50">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-white/10 dark:bg-white/5 rounded-full blur-3xl pointer-events-none" />
-
+        {/* Partea Dreaptă: Container Imagine cu Box Fix */}
+        <div className="w-full h-[230px] md:h-full md:w-1/2 shrink-0 bg-gradient-to-br from-[#4F0028] to-[#320606] dark:from-[#320606] dark:to-[#140202] p-8 flex items-center justify-center relative overflow-hidden order-1 md:order-2">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <AnimatePresence mode="wait">
             <motion.div
-              key={`img-${currentIndex}`}
-              initial={{ opacity: 0, scale: 0.85, filter: "blur(10px)" }}
-              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, scale: 0.85, filter: "blur(10px)" }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="relative z-10 w-full h-full flex justify-center items-center"
+              key={`i-${idx}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+              className="relative z-10 w-[220px] h-[150px] md:w-[280px] md:h-[220px] flex justify-center items-center"
             >
               <motion.img
-                animate={{ y: [0, -10, 0] }}
+                animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                src={events[currentIndex].image}
-                alt={t(events[currentIndex].titleKey)}
-                className="max-h-[180px] md:max-h-[260px] object-contain drop-shadow-2xl"
+                src={ev.image}
+                alt={t(ev.titleKey)}
+                className="w-full h-full object-contain drop-shadow-2xl"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
@@ -356,7 +545,123 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
   );
 };
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Cardul Unificat pentru Cursuri Internaționale (Study & Travel) ───────────
+const InternationalStudyCard = () => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="w-full max-w-5xl mx-auto">
+      <div className="bg-white dark:bg-[#1e0404] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden flex flex-col md:flex-row min-h-[440px] transition-colors duration-300">
+        {/* Stânga: Informații + Pilonii (Aplicații în Europa vs Cursul de Vară din Brașov) */}
+        <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4F0028]/10 dark:bg-rose-500/15 text-[#4F0028] dark:text-rose-300 text-xs font-bold uppercase tracking-wider mb-4">
+              <Compass size={14} />
+              {t("eventsPage.international.badge")}
+            </div>
+
+            <h3 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
+              {t("eventsPage.international.cardTitle")}
+            </h3>
+
+            <p className="text-gray-500 dark:text-gray-300 text-sm md:text-[15px] leading-relaxed mb-6">
+              {t("eventsPage.international.cardDesc")}
+            </p>
+
+            {/* Cele 2 direcții: Plecări în afară + Cursul organizat la Brașov vara */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-8">
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#140202] border border-gray-100 dark:border-rose-950/60">
+                <div className="flex items-center gap-2 text-[#4F0028] dark:text-rose-400 font-bold text-sm mb-1">
+                  <Globe size={16} />
+                  <span>{t("eventsPage.international.abroadTitle")}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {t("eventsPage.international.abroadDesc")}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#140202] border border-gray-100 dark:border-rose-950/60">
+                <div className="flex items-center gap-2 text-[#4F0028] dark:text-rose-400 font-bold text-sm mb-1">
+                  <Sun size={16} />
+                  <span>{t("eventsPage.international.localSummerTitle")}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                  {t("eventsPage.international.localSummerDesc")}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href="https://studyandtravel.bestbrasov.ro"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-white bg-[#4F0028] hover:bg-[#320606] px-7 py-3.5 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-[#4F0028]/25 hover:-translate-y-0.5 group/btn"
+            >
+              {t("eventsPage.international.ctaBtn")}
+              <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+            </a>
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+              studyandtravel.bestbrasov.ro
+            </span>
+          </div>
+        </div>
+
+        {/* Dreapta: Panou Vizual Study & Travel */}
+        <div className="w-full md:w-5/12 bg-gradient-to-br from-[#4F0028] via-[#320606] to-[#140202] p-8 md:p-10 flex flex-col justify-between text-white relative overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-64 h-64 bg-rose-400/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/80">
+              BEST Courses
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-white/10 border border-white/15 px-3 py-1 rounded-full whitespace-nowrap">
+              <MapPin size={12} className="text-rose-300 shrink-0" /> 85+{" "}
+              {t("eventsPage.international.locationsTag")}
+            </span>
+          </div>
+
+          <div className="relative z-10 my-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-rose-300/80 font-bold mb-2">
+              {t("eventsPage.international.portalLabel")}
+            </p>
+            <h4 className="text-3xl sm:text-4xl font-black tracking-tight leading-none mb-4">
+              Time to <span className="text-rose-300">Connect.</span>
+            </h4>
+            <p className="text-xs sm:text-sm text-white/75 leading-relaxed">
+              {t("eventsPage.international.portalHighlight")}
+            </p>
+          </div>
+
+          <div className="relative z-10 grid grid-cols-3 gap-2 pt-4 border-t border-white/10 text-center">
+            <div>
+              <p className="text-lg font-black text-white">7–14</p>
+              <p className="text-[10px] uppercase tracking-wider text-white/60">
+                {t("eventsPage.international.statDays")}
+              </p>
+            </div>
+            <div className="border-x border-white/10">
+              <p className="text-lg font-black text-white">30</p>
+              <p className="text-[10px] uppercase tracking-wider text-white/60">
+                {t("eventsPage.international.statCountries")}
+              </p>
+            </div>
+            <div>
+              <p className="text-lg font-black text-rose-300">Free*</p>
+              <p className="text-[10px] uppercase tracking-wider text-white/60">
+                {t("eventsPage.international.statMeals")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Pagina Principală Events ─────────────────────────────────────────────────
 const Events = () => {
   const { t, i18n } = useTranslation();
 
@@ -364,7 +669,14 @@ const Events = () => {
     document.title = t("eventsPage.pageTitle");
   }, [t, i18n.language]);
 
-  const allEvents = [...externalEvents, ...internalEvents];
+  const allEvents = useMemo(
+    () => [
+      ...externalEvents.map((e) => ({ ...e, type: "public" })),
+      ...internalEvents.map((e) => ({ ...e, type: "internal" })),
+      ...(calendarHighlights || []).map((e) => ({ ...e, type: e.type || "public" })),
+    ],
+    []
+  );
 
   return (
     <div className="pt-32 pb-24 min-h-screen bg-gray-50/50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300">
@@ -393,46 +705,52 @@ const Events = () => {
           </motion.p>
         </div>
 
-        <CalendarStrip events={allEvents} />
+        {/* 0. Calendarul complet */}
+        <CalendarSection events={allEvents} />
 
-        <motion.div
+        {/* 1. Evenimente Publice */}
+        <motion.section
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mb-32"
         >
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1e0404] shadow-md border border-gray-100 dark:border-rose-950/60 flex items-center justify-center text-[#4F0028] dark:text-rose-400 mb-4">
-              <Globe size={28} />
-            </div>
-            <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
-              {t("eventsPage.publicEvents.title")}
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400">
-              {t("eventsPage.publicEvents.subtitle")}
-            </p>
-          </div>
+          <SectionHeader
+            icon={Globe}
+            title={t("eventsPage.publicEvents.title")}
+            subtitle={t("eventsPage.publicEvents.subtitle")}
+          />
           <SingleItemCarousel events={externalEvents} showButton={true} />
-        </motion.div>
+        </motion.section>
 
-        <motion.div
+        {/* 2. Evenimente Interne */}
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-32"
+        >
+          <SectionHeader
+            icon={Users}
+            title={t("eventsPage.internalEvents.title")}
+            subtitle={t("eventsPage.internalEvents.subtitle")}
+          />
+          <SingleItemCarousel events={internalEvents} showButton={false} />
+        </motion.section>
+
+        {/* 3. Ultimul Card: Oportunități Internaționale (Study & Travel) */}
+        <motion.section
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1e0404] shadow-md border border-gray-100 dark:border-rose-950/60 flex items-center justify-center text-[#4F0028] dark:text-rose-400 mb-4">
-              <Users size={28} />
-            </div>
-            <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
-              {t("eventsPage.internalEvents.title")}
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400">
-              {t("eventsPage.internalEvents.subtitle")}
-            </p>
-          </div>
-          <SingleItemCarousel events={internalEvents} showButton={false} />
-        </motion.div>
+          <SectionHeader
+            icon={Compass}
+            title={t("eventsPage.international.title")}
+            subtitle={t("eventsPage.international.subtitle")}
+          />
+          <InternationalStudyCard />
+        </motion.section>
       </div>
     </div>
   );
