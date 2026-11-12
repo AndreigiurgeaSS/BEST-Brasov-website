@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSc.../viewform?embedded=true";
+  "https://docs.google.com/forms/d/e/1FAIpQLSc7SYTuLF4KmYz6FsPWmG41ciPwAqV5CVUNdhuo0762JB5GmA/viewform";
 
 const FAQItem = ({ faq, index, isOpen, toggleOpen }) => {
   const num = String(index + 1).padStart(2, "0");
