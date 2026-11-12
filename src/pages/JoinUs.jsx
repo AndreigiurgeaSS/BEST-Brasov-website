@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -35,7 +35,7 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
-// ─── iPhone Text-Selection Recruitment Badge (Stânga-Sus / Dreapta-Jos) ──────
+// ─── 1. iPhone Text-Selection Badge: OPEN (Cu loop pe cuvântul OPEN) ─────────
 const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
   const prefix = `${prefixText} `;
   const word = highlightText;
@@ -45,7 +45,6 @@ const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
   const [wordCount, setWordCount] = useState(0);
   const [isDeletingWord, setIsDeletingWord] = useState(false);
 
-  // Resetăm animația dacă utilizatorul schimbă limba (RO <-> EN)
   useEffect(() => {
     setPhase("initial");
     setPrefixCount(0);
@@ -96,7 +95,7 @@ const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
-      className="group relative inline-flex items-center justify-center py-4 px-5 cursor-pointer select-none focus:outline-none"
+      className="group relative z-20 inline-flex items-center justify-center py-4 px-5 cursor-pointer select-none focus:outline-none"
     >
       <div className="pointer-events-none absolute inset-0 bg-[#4F0028]/15 dark:bg-rose-500/20 blur-2xl rounded-full opacity-80 group-hover:opacity-100 transition-opacity" />
 
@@ -123,16 +122,112 @@ const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
   );
 };
 
-// ─── Variantele 3D pentru Benefits Carousel ──────────────────────────────────
-const cardVariants = {
-  center: { x: "0%", z: 0, rotateY: 0, scale: 1, opacity: 1, zIndex: 10, filter: "blur(0px)" },
-  left: { x: "-56%", z: -140, rotateY: 22, scale: 0.84, opacity: 0.75, zIndex: 5, filter: "blur(0.5px)" },
-  right: { x: "56%", z: -140, rotateY: -22, scale: 0.84, opacity: 0.75, zIndex: 5, filter: "blur(0.5px)" },
-  "far-left": { x: "-95%", z: -260, rotateY: 32, scale: 0.68, opacity: 0.25, zIndex: 2, filter: "blur(2px)" },
-  "far-right": { x: "95%", z: -260, rotateY: -32, scale: 0.68, opacity: 0.25, zIndex: 2, filter: "blur(2px)" },
+// ─── 2. iPhone Text-Selection Badge: CLOSED (Gri, se scrie o singură dată și rămâne așa) ─
+const IPhoneSelectionBadgeClosed = ({ prefixText, highlightText, onClick }) => {
+  const prefix = `${prefixText} `;
+  const word = highlightText;
+
+  const [prefixCount, setPrefixCount] = useState(0);
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    setPrefixCount(0);
+    setWordCount(0);
+  }, [prefixText, highlightText]);
+
+  useEffect(() => {
+    let timer;
+    if (prefixCount < prefix.length) {
+      timer = setTimeout(() => setPrefixCount((c) => c + 1), 45);
+    } else if (wordCount < word.length) {
+      timer = setTimeout(() => setWordCount((c) => c + 1), 75);
+    }
+    return () => clearTimeout(timer);
+  }, [prefixCount, wordCount, prefix.length, word.length]);
+
+  const visiblePrefix = prefix.slice(0, prefixCount);
+  const visibleWord = word.slice(0, wordCount);
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative z-20 inline-flex items-center justify-center py-4 px-5 cursor-pointer select-none focus:outline-none"
+    >
+      <div className="pointer-events-none absolute inset-0 bg-gray-400/15 dark:bg-gray-600/15 blur-2xl rounded-full opacity-75" />
+
+      <div className="relative inline-flex items-center bg-gray-200/75 dark:bg-white/[0.06] border-y border-gray-400/50 dark:border-gray-500/40 px-3.5 sm:px-4 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[42px]">
+        {/* MÂNER STÂNGA GRI (Bulină SUS) */}
+        <div className="absolute left-0 top-0 bottom-0 w-[2.5px] bg-gray-500 dark:bg-gray-400">
+          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-500 dark:bg-gray-400 ring-2 ring-white dark:ring-[#320606]" />
+        </div>
+
+        {/* TEXT ÎN GRI (Se scrie o singură dată fără să se mai repete) */}
+        <div className="flex items-center whitespace-pre text-sm sm:text-base md:text-lg tracking-wide font-semibold text-gray-500 dark:text-gray-400">
+          <span>{visiblePrefix}</span>
+          <strong className="font-black text-gray-700 dark:text-gray-200 tracking-wider uppercase">
+            {visibleWord}
+          </strong>
+        </div>
+
+        {/* MÂNER DREAPTA GRI (Bulină JOS) */}
+        <div className="absolute right-0 top-0 bottom-0 w-[2.5px] bg-gray-500 dark:bg-gray-400">
+          <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-500 dark:bg-gray-400 ring-2 ring-white dark:ring-[#320606]" />
+        </div>
+      </div>
+    </motion.button>
+  );
 };
 
-// ─── Benefits 3D Carousel ────────────────────────────────────────────────────
+// ─── Variantele 3D pentru Benefits Carousel (Fără filter:blur animat -> 60 FPS constant) ──
+const cardVariants = {
+  center: {
+    x: "0%",
+    z: 0,
+    rotateY: 0,
+    scale: 1,
+    opacity: 1,
+    zIndex: 10,
+  },
+  left: {
+    x: "-56%",
+    z: -140,
+    rotateY: 22,
+    scale: 0.84,
+    opacity: 0.75,
+    zIndex: 5,
+  },
+  right: {
+    x: "56%",
+    z: -140,
+    rotateY: -22,
+    scale: 0.84,
+    opacity: 0.75,
+    zIndex: 5,
+  },
+  "far-left": {
+    x: "-95%",
+    z: -260,
+    rotateY: 32,
+    scale: 0.68,
+    opacity: 0.25,
+    zIndex: 2,
+  },
+  "far-right": {
+    x: "95%",
+    z: -260,
+    rotateY: -32,
+    scale: 0.68,
+    opacity: 0.25,
+    zIndex: 2,
+  },
+};
+
+// ─── Benefits 3D Carousel (Același design, tranziție ultra-fluidă GPU) ───────
 const BenefitsCarousel = () => {
   const { t } = useTranslation();
   const [virtualCurrent, setVirtualCurrent] = useState(0);
@@ -184,8 +279,8 @@ const BenefitsCarousel = () => {
   const handleTouchEnd = () => {
     if (!touchStartX || !touchEndX) return;
     const dist = touchStartX - touchEndX;
-    if (dist > 50) next();
-    if (dist < -50) prev();
+    if (dist > 45) next();
+    if (dist < -45) prev();
   };
 
   const slots = [
@@ -219,27 +314,41 @@ const BenefitsCarousel = () => {
               initial={false}
               animate={pos}
               whileHover={isCenter ? { scale: 1.02, y: -4 } : { scale: pos.includes("far") ? 0.7 : 0.87 }}
-              transition={{ type: "spring", stiffness: 220, damping: 26, mass: 1 }}
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 28,
+                mass: 0.85,
+                restDelta: 0.5,
+              }}
               onClick={() => {
                 if (pos === "left" || pos === "far-left") prev();
                 else if (pos === "right" || pos === "far-right") next();
                 else setIsPaused((p) => !p);
               }}
-              className="w-[275px] sm:w-[440px] md:w-[500px] h-[265px] sm:h-[320px] rounded-[1.75rem] sm:rounded-[2rem] p-5 sm:p-9 flex flex-col justify-between overflow-hidden"
+              className="w-[275px] sm:w-[440px] md:w-[500px] h-[265px] sm:h-[320px] rounded-[1.75rem] sm:rounded-[2rem] p-5 sm:p-9 flex flex-col justify-between overflow-hidden transform-gpu"
               style={{
                 position: "absolute",
                 cursor: "pointer",
-                willChange: "transform, opacity, filter",
+                willChange: "transform, opacity",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
                 background: isCenter
                   ? "linear-gradient(145deg, #4F0028 0%, #320606 60%, #1c0202 100%)"
                   : "linear-gradient(145deg, #241418 0%, #12090b 100%)",
                 boxShadow: isCenter
-                  ? "0 30px 70px -10px rgba(79,0,40,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset"
-                  : "0 20px 40px -10px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06) inset",
+                  ? "0 28px 60px -12px rgba(79,0,40,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset"
+                  : "0 18px 36px -10px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.06) inset",
               }}
             >
+              {/* Glow intern lejer pe GPU (radial-gradient în loc de filter:blur-3xl care bloca placa video) */}
               {isCenter && (
-                <div className="absolute -top-20 -right-20 w-52 h-52 bg-rose-400/15 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
+                  style={{
+                    background: "radial-gradient(circle, rgba(251,113,133,0.22) 0%, rgba(251,113,133,0) 70%)",
+                  }}
+                />
               )}
               <div className="flex items-center justify-between gap-4 relative z-10">
                 <div className="flex flex-col gap-2">
@@ -250,7 +359,7 @@ const BenefitsCarousel = () => {
                     {b.tag}
                   </span>
                   <div
-                    className="h-[2px] rounded-full transition-all duration-500"
+                    className="h-[2px] rounded-full transition-all duration-300"
                     style={{
                       width: isCenter ? "42px" : "24px",
                       background: isCenter ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
@@ -258,7 +367,7 @@ const BenefitsCarousel = () => {
                   />
                 </div>
                 <div
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                     isCenter
                       ? "bg-white/15 shadow-inner scale-100 opacity-100"
                       : "bg-white/5 scale-90 opacity-40"
@@ -269,14 +378,14 @@ const BenefitsCarousel = () => {
               </div>
               <div className="relative z-10 my-auto pt-1 sm:pt-2">
                 <h3
-                  className={`font-black text-white tracking-tight transition-all duration-500 mb-2 sm:mb-3 ${
+                  className={`font-black text-white tracking-tight transition-colors duration-300 mb-2 sm:mb-3 ${
                     isCenter ? "text-xl sm:text-3xl" : "text-lg sm:text-2xl text-white/70"
                   }`}
                 >
                   {b.title}
                 </h3>
                 <p
-                  className={`text-xs sm:text-base leading-relaxed transition-opacity duration-500 ${
+                  className={`text-xs sm:text-base leading-relaxed transition-opacity duration-300 ${
                     pos.includes("far") ? "opacity-0" : isCenter ? "text-white/90" : "text-white/40"
                   }`}
                 >
@@ -296,7 +405,7 @@ const BenefitsCarousel = () => {
       <div className="hidden md:flex justify-center items-center gap-5 mt-10">
         <button
           onClick={prev}
-          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95"
+          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95 cursor-pointer"
         >
           <ChevronLeft size={22} />
         </button>
@@ -305,7 +414,7 @@ const BenefitsCarousel = () => {
             <button
               key={i}
               onClick={() => goToRealIndex(i)}
-              className={`h-2.5 rounded-full transition-all duration-500 ${
+              className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                 i === activeRealIndex
                   ? "w-10 bg-[#4F0028] dark:bg-rose-400 shadow-sm"
                   : "w-2.5 bg-gray-300 dark:bg-rose-950 hover:bg-gray-400"
@@ -315,7 +424,7 @@ const BenefitsCarousel = () => {
         </div>
         <button
           onClick={next}
-          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95"
+          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95 cursor-pointer"
         >
           <ChevronRight size={22} />
         </button>
@@ -338,7 +447,7 @@ const ContactBox = ({ label, value, displayValue, Icon }) => {
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleCopy}
-      className="w-full text-left p-4 bg-gray-50 dark:bg-[#180202] border border-gray-200 dark:border-rose-950/60 rounded-[1.5rem] hover:border-[#4F0028]/50 dark:hover:border-rose-500/50 hover:shadow-md transition-all duration-300 group flex items-center gap-4 relative overflow-hidden"
+      className="w-full text-left p-4 bg-gray-50 dark:bg-[#180202] border border-gray-200 dark:border-rose-950/60 rounded-[1.5rem] hover:border-[#4F0028]/50 dark:hover:border-rose-500/50 hover:shadow-md transition-all duration-300 group flex items-center gap-4 relative overflow-hidden cursor-pointer"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-rose-50 to-transparent dark:from-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <div className="relative z-10 w-10 h-10 rounded-xl bg-white dark:bg-[#2a0505] flex items-center justify-center flex-shrink-0 group-hover:bg-[#4F0028] transition-colors duration-300 border border-gray-100 dark:border-rose-900/40">
@@ -366,10 +475,10 @@ const ContactBox = ({ label, value, displayValue, Icon }) => {
   );
 };
 
-// ─── Flat CSS Marquee ────────────────────────────────────────────────────────
+// ─── Testimonial Card & Interactive Draggable Marquee (Mai lent + Drag) ──────
 const TestimonialCard = ({ t }) => (
   <div
-    className={`relative w-[245px] sm:w-[380px] ${t.bgColor} p-4 sm:p-6 rounded-2xl sm:rounded-[1.5rem] shadow-md flex flex-col flex-shrink-0 md:hover:-translate-y-1 transition-transform duration-300`}
+    className={`relative w-[260px] sm:w-[380px] ${t.bgColor} p-5 sm:p-6 rounded-2xl sm:rounded-[1.5rem] shadow-md flex flex-col flex-shrink-0 md:hover:-translate-y-1 transition-transform duration-300 select-none`}
   >
     <div className="relative z-10 flex-1">
       {t.stars && (
@@ -403,34 +512,132 @@ const TestimonialCard = ({ t }) => (
 );
 
 const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
-  const [isPaused, setIsPaused] = useState(false);
-  const animationName = direction === -1 ? "marqueeLeft" : "marqueeRight";
-  const expandedList = [...testimonials, ...testimonials, ...testimonials, ...testimonials];
+  const trackRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isTouchPaused, setIsTouchPaused] = useState(false);
+
+  const posRef = useRef(0);
+  const halfWidthRef = useRef(0);
+  const dragStartXRef = useRef(0);
+  const dragStartPosRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
+  const expandedList = [...testimonials, ...testimonials, ...testimonials];
+
+  const measure = useCallback(() => {
+    if (!trackRef.current) return;
+    const half = trackRef.current.scrollWidth / 2;
+    halfWidthRef.current = half;
+    if (direction === 1 && posRef.current === 0 && half > 0) {
+      posRef.current = -half;
+    }
+  }, [direction]);
+
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
+
+  const wrapPosition = useCallback((val) => {
+    const half = halfWidthRef.current;
+    if (!half) return val;
+    let next = val % half;
+    if (next > 0) next -= half;
+    return next;
+  }, []);
+
+  useEffect(() => {
+    let rafId;
+    const speed = 0.32;
+
+    const step = () => {
+      if (!isHovered && !isDragging && !isTouchPaused && halfWidthRef.current > 0) {
+        posRef.current = wrapPosition(posRef.current + direction * speed);
+        if (trackRef.current) {
+          trackRef.current.style.transform = `translate3d(${posRef.current}px, 0, 0)`;
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [direction, isHovered, isDragging, isTouchPaused, wrapPosition]);
+
+  const handlePointerDown = (clientX) => {
+    measure();
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    dragStartXRef.current = clientX;
+    dragStartPosRef.current = posRef.current;
+  };
+
+  const handlePointerMove = useCallback(
+    (clientX) => {
+      if (!isDragging) return;
+      const delta = clientX - dragStartXRef.current;
+      if (Math.abs(delta) > 5) hasMovedRef.current = true;
+      posRef.current = wrapPosition(dragStartPosRef.current + delta);
+      if (trackRef.current) {
+        trackRef.current.style.transform = `translate3d(${posRef.current}px, 0, 0)`;
+      }
+    },
+    [isDragging, wrapPosition]
+  );
+
+  const handlePointerUp = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMouseMove = (e) => handlePointerMove(e.clientX);
+    const onTouchMove = (e) => {
+      if (e.touches && e.touches[0]) handlePointerMove(e.touches[0].clientX);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", handlePointerUp);
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", handlePointerUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", handlePointerUp);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", handlePointerUp);
+    };
+  }, [isDragging, handlePointerMove, handlePointerUp]);
 
   return (
     <div
-      className="relative overflow-hidden w-full py-2 select-none cursor-pointer"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onClick={() => setIsPaused(!isPaused)}
+      className="relative overflow-hidden w-full py-2 select-none cursor-grab active:cursor-grabbing"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        handlePointerDown(e.clientX);
+      }}
+      onTouchStart={(e) => {
+        if (e.touches && e.touches[0]) handlePointerDown(e.touches[0].clientX);
+      }}
+      onClick={() => {
+        if (!hasMovedRef.current) {
+          setIsTouchPaused((p) => !p);
+        }
+      }}
     >
-      <style>{`
-        @keyframes marqueeLeft { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
-        @keyframes marqueeRight { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }
-      `}</style>
-
-      {isPaused && (
+      {isTouchPaused && (
         <div className="md:hidden absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm pointer-events-none">
           {pausedText}
         </div>
       )}
 
       <div
-        className="flex w-max"
-        style={{
-          animation: `${animationName} 60s linear infinite`,
-          animationPlayState: isPaused ? "paused" : "running",
-        }}
+        ref={trackRef}
+        className="flex w-max will-change-transform"
+        style={{ transform: "translate3d(0px, 0, 0)" }}
       >
         <div className="flex gap-4 sm:gap-6 pr-4 sm:pr-6">
           {expandedList.map((item, i) => (
@@ -458,6 +665,7 @@ const JoinUs = () => {
     message: "",
   });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [showMobileClosedTip, setShowMobileClosedTip] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -477,15 +685,34 @@ const JoinUs = () => {
       const el = document.getElementById("contact");
       if (el)
         setTimeout(() => {
+          window.isAutoScrolling = true;
           const y = el.getBoundingClientRect().top + window.scrollY - 96;
           window.scrollTo({ top: y, behavior: "smooth" });
+          setTimeout(() => {
+            window.isAutoScrolling = false;
+          }, 900);
         }, 100);
     }
   }, [location]);
 
-  const scrollToApplyButton = () => {
-    const el = document.getElementById("apply-action");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Când apeși pe bara "Recruitments are OPEN":
+  // Dacă pagina e puțin dată în jos (cum era în prima poză unde bara nu se vedea),
+  // urcă pagina lin la top: 0 FĂRĂ să ascundă Navbar-ul (window.isAutoScrolling = true).
+  // Iar dacă ești deja la top: 0, îți centrează frumos butonul de Apply Now!
+  const handleRecruitmentBadgeClick = () => {
+    window.isAutoScrolling = true;
+    if (window.scrollY > 30) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      const el = document.getElementById("apply-action");
+      if (el) {
+        const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 180);
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }
+    setTimeout(() => {
+      window.isAutoScrolling = false;
+    }, 900);
   };
 
   const handleSubmit = (e) => {
@@ -504,6 +731,8 @@ const JoinUs = () => {
     setFormData((p) => ({ ...p, [name]: value }));
   };
 
+  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
+
   return (
     <>
       <div className="pt-28 sm:pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-hidden relative">
@@ -514,24 +743,25 @@ const JoinUs = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* HERO */}
-          <div className="text-center max-w-4xl mx-auto mb-20 sm:mb-24">
-            {/* ── OPEN ── */}
+          <div id="join-hero-top" className="text-center max-w-4xl mx-auto mb-20 sm:mb-24 scroll-mt-28">
+            {/* ── 1. BARA OPEN (Activă acum) ── 
             <div className="mb-8 flex justify-center">
               <IPhoneSelectionBadge
-                prefixText="Recruitments are"
-                highlightText="OPEN"
-                onClick={scrollToApplyButton}
+                prefixText={t("joinUs.hero.badgeOpen")}
+                highlightText={t("joinUs.hero.badgeOpenStrong")}
+                onClick={handleRecruitmentBadgeClick}
+              />
+            </div>*/}
+
+            {/* ── 2. BARA CLOSED ÎN STIL IPHONE GRI (Se scrie o singură dată și rămâne așa — decomentează când recrutările sunt ÎNCHISE) ──*/}
+            <div className="mb-8 flex justify-center">
+              <IPhoneSelectionBadgeClosed
+                prefixText={isRO ? "Recrutările sunt" : "Recruitments are"}
+                highlightText={isRO ? "ÎNCHISE" : "CLOSED"}
+                onClick={handleRecruitmentBadgeClick}
               />
             </div>
-
-            {/* ── CLOSED (Decomentează când recrutările sunt ÎNCHISE) ──
-              <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex justify-center">
-                <div className="inline-flex items-center justify-center gap-3 w-full max-w-sm sm:max-w-md px-7 py-3 rounded-full bg-gray-200/80 dark:bg-[#1e0404]/80 backdrop-blur-md text-gray-600 dark:text-gray-400 text-xs sm:text-sm font-bold border border-gray-300/80 dark:border-rose-950/60 shadow-sm">
-                  <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-500 flex-shrink-0" />
-                  <span className="truncate">{t("joinUs.hero.badgeClosed")}</span>
-                </div>
-              </motion.div>
-            */}
+            
 
             <motion.h1
               initial={{ opacity: 0, y: -30 }}
@@ -559,26 +789,39 @@ const JoinUs = () => {
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="relative inline-block group scroll-mt-40"
+              className="relative inline-block group scroll-mt-36"
             >
-              {/* ── APPLY BUTTON ACTIVE (Decomentează când recrutările sunt OPEN) ──
-                <button
-                  type="button"
-                  onClick={() => setIsApplyModalOpen(true)}
-                  className="inline-flex items-center gap-3 bg-[#4F0028] hover:bg-[#320606] text-white px-10 py-4 rounded-full font-black text-lg transition-all shadow-lg shadow-[#4F0028]/25 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
-                >
-                  {t("joinUs.hero.applyBtn")}
-                </button>
-              */}
-
-              {/* ── APPLY BUTTON DISABLED ── */}
+              {/* ── VARIANTA A: APPLY BUTTON ACTIV (Decomentează când recrutările sunt OPEN) ──
               <button
-                disabled
-                className="inline-flex items-center gap-3 bg-gray-300 dark:bg-[#2a0606] text-gray-500 dark:text-gray-400 px-10 py-4 rounded-full font-black text-lg cursor-not-allowed transition-all"
+                type="button"
+                onClick={() => setIsApplyModalOpen(true)}
+                className="inline-flex items-center gap-3 bg-[#4F0028] hover:bg-[#320606] text-white px-10 py-4 rounded-full font-black text-lg transition-all shadow-lg shadow-[#4F0028]/25 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
               >
                 {t("joinUs.hero.applyBtn")}
               </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] sm:w-[280px] px-4 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-medium rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+              */}
+
+              {/* ── VARIANTA B: APPLY BUTTON ÎNCHIS (FĂRĂ atributul `disabled` ca să meargă tap-ul pe mobil și hover-ul pe laptop) ── */}
+              <button
+                type="button"
+                aria-disabled="true"
+                onClick={() => {
+                  // Doar pe mobil (sub 768px) comută tooltip-ul la click/tap; pe laptop merge strict din hover (group-hover)
+                  if (window.innerWidth < 768) {
+                    setShowMobileClosedTip((v) => !v);
+                  }
+                }}
+                onMouseLeave={() => setShowMobileClosedTip(false)}
+                className="inline-flex items-center gap-3 bg-gray-300 dark:bg-[#2a0606] text-gray-500 dark:text-gray-400 px-10 py-4 rounded-full font-black text-lg cursor-not-allowed transition-all select-none"
+              >
+                {t("joinUs.hero.applyBtn")}
+              </button>
+
+              <div
+                className={`absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] sm:w-[280px] px-4 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-medium rounded-xl shadow-xl transition-opacity duration-300 pointer-events-none z-30 ${
+                  showMobileClosedTip ? "opacity-100" : "opacity-0"
+                } md:opacity-0 md:group-hover:opacity-100`}
+              >
                 {t("joinUs.hero.closedTooltip1")} <br /> {t("joinUs.hero.closedTooltip2")}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900 dark:border-b-white" />
               </div>
@@ -597,7 +840,7 @@ const JoinUs = () => {
           </div>
         </div>
 
-        {/* TESTIMONIALS (MARQUEE) */}
+        {/* TESTIMONIALS (DRAGGABLE & SLOWER MARQUEE) */}
         <div className="mb-24 sm:mb-32 w-full relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-10 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -657,8 +900,7 @@ const JoinUs = () => {
                     Icon={Mail}
                   />
 
-              {/* NUMAR DE TELEFON (cand trebuie schimbat) */}
-
+                  {/* NUMAR DE TELEFON (cand trebuie schimbat) */}
                   <ContactBox
                     label={t("joinUs.contact.phoneLabel")}
                     value="+40 730 827 778"
