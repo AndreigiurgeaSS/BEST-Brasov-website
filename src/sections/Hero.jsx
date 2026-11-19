@@ -20,7 +20,7 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#200303] dark:to-[#110101] pt-24 pb-20 overflow-hidden transition-colors duration-300"
+      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center bg-transparent pt-24 pb-20 overflow-hidden"
     >
       {/* Architectural Grid cu Radial Mask */}
       <div
@@ -139,7 +139,7 @@ const Hero = () => {
         </motion.div>
       </div>
 
-      {/* Scroll Down Indicator — mereu vizibil în partea de jos a ecranului */}
+      {/* Scroll Down Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

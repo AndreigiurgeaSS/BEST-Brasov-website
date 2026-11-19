@@ -6,9 +6,9 @@ const WhatIsBest = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-24 relative bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:to-[#180202] transition-colors duration-300 overflow-hidden">
+    <section className="py-24 relative bg-transparent">
       {/* Background blobs */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-[#4F0028]/10 dark:bg-[#4F0028]/20 rounded-full blur-3xl" />
         <div className="absolute bottom-[10%] right-[-10%] w-[40%] h-[40%] bg-[#4F0028]/10 dark:bg-[#4F0028]/20 rounded-full blur-3xl" />
       </div>
@@ -55,7 +55,7 @@ const WhatIsBest = () => {
             </div>
           </motion.div>
 
-          {/* Text Panel Overlapping (Burgundy pe Light Mode, Burgundy-Negru pe Dark Mode) */}
+          {/* Text Panel Overlapping */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -112,7 +112,7 @@ const WhatIsBest = () => {
             </div>
           </motion.div>
 
-          {/* Text Panel Overlapping (Burgundy pe Light Mode, Burgundy-Negru pe Dark Mode) */}
+          {/* Text Panel Overlapping */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}

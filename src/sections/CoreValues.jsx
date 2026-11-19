@@ -31,15 +31,15 @@ const CylinderCard = ({
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
 
-  const tiltX = useSpring(useTransform(mouseY, [0, 1], [12, -12]), {
+  const tiltX = useSpring(useTransform(mouseY, [0, 1], [10, -10]), {
     stiffness: 280,
-    damping: 22,
+    damping: 24,
   });
-  const tiltY = useSpring(useTransform(mouseX, [0, 1], [-12, 12]), {
+  const tiltY = useSpring(useTransform(mouseX, [0, 1], [-10, 10]), {
     stiffness: 280,
-    damping: 22,
+    damping: 24,
   });
-  const liftY = useSpring(0, { stiffness: 300, damping: 20 });
+  const liftY = useSpring(0, { stiffness: 300, damping: 22 });
 
   const spotlightBg = useTransform(
     [mouseX, mouseY],
@@ -68,24 +68,13 @@ const CylinderCard = ({
     return isMobile ? 0.72 + depth * 0.28 : 0.65 + depth * 0.35;
   });
 
+  // Jumătatea din spate dispare curat (fără text suprapus și mai puține layere pe GPU)
   const opacity = useTransform(rotation, (r) => {
     const rad = ((r + baseAngle) * Math.PI) / 180;
     const cos = Math.cos(rad);
-    if (isMobile) {
-      if (cos < -0.15) return 0;
-      const normalized = (cos + 0.15) / 1.15;
-      return Math.pow(normalized, 1.6);
-    }
-    const depth = (cos + 1) / 2;
-    return 0.12 + Math.pow(depth, 1.65) * 0.88;
-  });
-
-  const cardFilter = useTransform(rotation, (r) => {
-    const rad = ((r + baseAngle) * Math.PI) / 180;
-    const cos = Math.cos(rad);
-    if (cos > 0.75) return "blur(0px)";
-    const blurPx = isMobile ? (1 - cos) * 1.8 : (1 - cos) * 1.1;
-    return `blur(${Math.min(2.5, Math.max(0, blurPx)).toFixed(1)}px)`;
+    if (cos < 0.05) return 0;
+    const normalized = (cos - 0.05) / 0.95;
+    return Math.pow(normalized, 1.35);
   });
 
   const zIndex = useTransform(rotation, (r) => {
@@ -95,7 +84,7 @@ const CylinderCard = ({
 
   const pointerEvents = useTransform(rotation, (r) => {
     const rad = ((r + baseAngle) * Math.PI) / 180;
-    return isMobile && Math.cos(rad) < -0.1 ? "none" : "auto";
+    return Math.cos(rad) < 0.1 ? "none" : "auto";
   });
 
   const handleMouseMove = (e) => {
@@ -133,11 +122,12 @@ const CylinderCard = ({
         rotateY,
         scale,
         opacity,
-        filter: cardFilter,
         zIndex,
         pointerEvents,
         transformStyle: "preserve-3d",
-        willChange: "transform, opacity, filter",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        willChange: "transform, opacity",
       }}
       onMouseEnter={handleEnter}
       onMouseMove={handleMouseMove}
@@ -151,6 +141,8 @@ const CylinderCard = ({
           rotateY: isHovered && !isMobile ? tiltY : 0,
           y: liftY,
           transformStyle: "preserve-3d",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
         }}
         className="relative w-full h-full rounded-[1.75rem] bg-white dark:bg-[#1a0303] border border-gray-200/90 dark:border-rose-950/70 md:hover:border-[#4F0028]/70 dark:md:hover:border-rose-400/60 shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.65)] md:hover:shadow-[0_20px_45px_rgba(79,0,40,0.28)] transition-colors duration-300 p-4 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden group"
       >
@@ -168,7 +160,7 @@ const CylinderCard = ({
 
         <div
           className="relative mb-3 sm:mb-3.5 flex items-center justify-center"
-          style={{ transform: "translateZ(26px)" }}
+          style={{ transform: "translateZ(24px)" }}
         >
           <motion.div
             animate={
@@ -198,14 +190,14 @@ const CylinderCard = ({
         </div>
 
         <h3
-          style={{ transform: "translateZ(18px)" }}
+          style={{ transform: "translateZ(16px)" }}
           className="text-sm sm:text-base font-black text-gray-900 dark:text-white mb-1.5 sm:mb-2 uppercase tracking-wider md:group-hover:text-[#4F0028] dark:md:group-hover:text-rose-400 transition-colors duration-300"
         >
           {item.title}
         </h3>
 
         <p
-          style={{ transform: "translateZ(12px)" }}
+          style={{ transform: "translateZ(10px)" }}
           className="text-gray-600 dark:text-gray-300 text-[11px] sm:text-xs leading-relaxed"
         >
           {item.desc}
@@ -222,7 +214,7 @@ const CoreValues = () => {
     radius: 380,
     cardW: 215,
     cardH: 250,
-    stageH: 320,
+    stageH: 400,
     isMobile: false,
   });
 
@@ -234,7 +226,7 @@ const CoreValues = () => {
           radius: 155,
           cardW: 185,
           cardH: 225,
-          stageH: 275,
+          stageH: 315,
           isMobile: true,
         });
       } else if (w < 1024) {
@@ -242,7 +234,7 @@ const CoreValues = () => {
           radius: 300,
           cardW: 195,
           cardH: 235,
-          stageH: 295,
+          stageH: 360,
           isMobile: false,
         });
       } else {
@@ -250,7 +242,7 @@ const CoreValues = () => {
           radius: 380,
           cardW: 215,
           cardH: 250,
-          stageH: 320,
+          stageH: 400,
           isMobile: false,
         });
       }
@@ -363,14 +355,23 @@ const CoreValues = () => {
     targetSpeed.set(1);
   };
 
-  return (
-    <section className="relative pt-20 sm:pt-14 pb-20 bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:to-[#140202] transition-colors duration-300 overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0" />
+  const edgeMask = dims.isMobile
+    ? "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)"
+    : "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)";
 
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[760px] h-[240px] bg-gradient-to-r from-[#4F0028]/5 via-[#4F0028]/15 to-[#4F0028]/5 rounded-full blur-3xl z-0" />
+  return (
+    <section className="relative pt-12 sm:pt-14 pb-16 bg-transparent">
+      {/* Glow lejer pe GPU (radial-gradient în loc de blur-3xl) */}
+      <div
+        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[760px] h-[280px] z-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, rgba(79, 0, 40, 0.22) 0%, rgba(79, 0, 40, 0) 70%)",
+        }}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-10 relative z-10">
-        <div className="text-center mb-8 sm:mb-10">
+        <div className="text-center mb-2 sm:mb-4">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -398,6 +399,8 @@ const CoreValues = () => {
           style={{
             height: `${dims.stageH}px`,
             perspective: dims.isMobile ? "950px" : "1200px",
+            maskImage: edgeMask,
+            WebkitMaskImage: edgeMask,
           }}
           onMouseEnter={() => !dims.isMobile && handlePause()}
           onMouseLeave={() => {
@@ -411,9 +414,6 @@ const CoreValues = () => {
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-20 bg-gradient-to-r from-gray-50 dark:from-[#230404] to-transparent z-40" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-20 bg-gradient-to-l from-gray-50 dark:from-[#230404] to-transparent z-40" />
-
           <div
             className="relative w-full h-full flex items-center justify-center"
             style={{ transformStyle: "preserve-3d" }}
