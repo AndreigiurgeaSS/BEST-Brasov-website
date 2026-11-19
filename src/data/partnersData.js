@@ -2,6 +2,16 @@ export const yearRoundPartners = [
   { name: "Burn Energy Drink", logo: "/images/partners/burn.png", link: "https://burn.com" }
 ];
 
+export const academicalPartners = [
+  { name: "Universitatea Transilvania", logo: "/images/partners/UNITBV.png", link: "https://www.unitbv.ro" },
+  { name: "ICDT", logo: "/images/partners/institutdecercetare-bd.png", link: "https://icdt.unitbv.ro" }
+];
+
+export const logisticsPartners = [
+  { name: "Crucea Roșie Română", logo: "/images/partners/crucea-rosie-bd.png", link: "https://crucearosie.ro" },
+  { name: "Coresi Business Campus", logo: "/images/partners/coresi.png", link: "https://coresibrasov.ro" } // sau https://coresibusinesscampus.ro depinde ce secțiune vizează
+];
+
 export const technicalPartners = [
   { name: "Zega", logo: "/images/partners/zega.png", link: "https://zega.ro" },
   { name: "Romstal", logo: "/images/partners/romstal.png", link: "https://www.romstal.ro" },
@@ -29,12 +39,5 @@ export const foodAndPrizesPartners = [
   { name: "Antreu", logo: "/images/partners/antreu-bd.png", link: "#" },
 ];
 
-export const logisticsPartners = [
-  { name: "Crucea Roșie Română", logo: "/images/partners/crucea-rosie-bd.png", link: "https://crucearosie.ro" },
-  { name: "Coresi Business Campus", logo: "/images/partners/coresi.png", link: "https://coresibrasov.ro" } // sau https://coresibusinesscampus.ro depinde ce secțiune vizează
-];
 
-export const academicalPartners = [
-  { name: "Universitatea Transilvania", logo: "/images/partners/UNITBV.png", link: "https://www.unitbv.ro" },
-  { name: "ICDT", logo: "/images/partners/institutdecercetare-bd.png", link: "https://icdt.unitbv.ro" }
-];
+
