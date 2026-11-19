@@ -33,32 +33,40 @@ function createParticle(originX, originY) {
 
 function ConfettiBurst({ origin, onDone }) {
   const canvasRef = useRef(null);
-  const particlesRef = useRef([]);
-  const rafRef = useRef(null);
-  const lastTimeRef = useRef(null);
+  const onDoneRef = useRef(onDone);
 
   useEffect(() => {
-    particlesRef.current = Array.from({ length: PARTICLE_COUNT }, () =>
-      createParticle(origin.x, origin.y)
-    );
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
+  useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    let particles = Array.from({ length: PARTICLE_COUNT }, () =>
+      createParticle(origin.x, origin.y)
+    );
+    let rafId = null;
+    let lastTime = null;
+    let cancelled = false;
 
     const GRAVITY = 420;
     const DRAG = 0.97;
 
     function tick(timestamp) {
-      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-      const dt = Math.min((timestamp - lastTimeRef.current) / 1000, 0.05);
-      lastTimeRef.current = timestamp;
+      if (cancelled) return;
+      if (!lastTime) lastTime = timestamp;
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+      lastTime = timestamp;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
+      particles = particles.filter((p) => p.life > 0);
 
-      for (const p of particlesRef.current) {
+      for (const p of particles) {
         p.vx *= DRAG;
         p.vy += GRAVITY * dt;
         p.x += p.vx * dt;
@@ -83,16 +91,20 @@ function ConfettiBurst({ origin, onDone }) {
         ctx.restore();
       }
 
-      if (particlesRef.current.length > 0) {
-        rafRef.current = requestAnimationFrame(tick);
+      if (particles.length > 0) {
+        rafId = requestAnimationFrame(tick);
       } else {
-        onDone();
+        onDoneRef.current?.();
       }
     }
 
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [origin, onDone]);
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+      if (rafId) cancelAnimationFrame(rafId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }, [origin]);
 
   return createPortal(
     <canvas
@@ -126,7 +138,6 @@ const LanguageSwitch = ({ lang, onToggle, compact = false }) => {
         compact ? "w-[68px] h-7" : "w-[76px] h-8"
       }`}
     >
-      {/* Pastila activă care alunecă stânga-dreapta */}
       <motion.div
         initial={false}
         animate={{ x: isRO ? "100%" : "0%" }}
@@ -134,7 +145,6 @@ const LanguageSwitch = ({ lang, onToggle, compact = false }) => {
         className="w-1/2 h-full rounded-full bg-white dark:bg-[#4F0028] shadow-sm"
       />
 
-      {/* Etichetele EN și RO */}
       <div className="absolute inset-0 grid grid-cols-2 items-center text-[10px] sm:text-[11px] font-black tracking-wider">
         <span
           className={`text-center transition-colors duration-200 ${
@@ -159,27 +169,25 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [confettiOrigin, setConfettiOrigin] = useState(null);
 
+  const lastScrollYRef = useRef(0);
+  const lastBurstTimeRef = useRef(0);
   const joinBtnRef = useRef(null);
   const location = useLocation();
 
-  // ── Inițializare Traduceri ────────────────────────────────────────────────
   const { t, i18n } = useTranslation();
 
   const initialLang =
     i18n.language && i18n.language.toLowerCase().startsWith("ro") ? "RO" : "EN";
   const [lang, setLang] = useState(initialLang);
 
-  // Switch unic: indiferent unde apeși pe el, inversează EN <-> RO
   const toggleLanguage = () => {
     const nextLang = lang === "EN" ? "RO" : "EN";
     setLang(nextLang);
     i18n.changeLanguage(nextLang.toLowerCase());
   };
 
-  // ── Blur ONLY the page content ────────────────────────────────────────────
   useEffect(() => {
     const appRoot = document.getElementById("root")?.firstElementChild;
     if (!appRoot) return;
@@ -216,26 +224,25 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
-  // ── Scroll hide/show ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
       if (window.isAutoScrolling) {
         setIsVisible(true);
-        setLastScrollY(currentScrollY);
+        lastScrollYRef.current = currentScrollY;
         return;
       }
 
-      setIsVisible(!(currentScrollY > lastScrollY && currentScrollY > 100));
-      setLastScrollY(currentScrollY);
+      const shouldShow = !(currentScrollY > lastScrollYRef.current && currentScrollY > 100);
+      setIsVisible(shouldShow);
+      lastScrollYRef.current = currentScrollY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
-  // ── Dark mode ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (
@@ -259,16 +266,23 @@ const Navbar = () => {
     }
   };
 
-  // ── Confetti trigger ──────────────────────────────────────────────────────
+  const handleConfettiDone = useCallback(() => {
+    setConfettiOrigin(null);
+  }, []);
+
   const triggerConfetti = useCallback((e) => {
+    const now = Date.now();
+    if (now - lastBurstTimeRef.current < 800) return;
+    lastBurstTimeRef.current = now;
+
     const rect = e.currentTarget.getBoundingClientRect();
     setConfettiOrigin({
+      id: now,
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2,
     });
   }, []);
 
-  // ── Nav Links ─────────────────────────────────────────────────────────────
   const navLinks = [
     { name: t("nav.home"), path: "/" },
     { name: t("nav.events"), path: "/events" },
@@ -282,8 +296,9 @@ const Navbar = () => {
     <>
       {confettiOrigin && (
         <ConfettiBurst
+          key={confettiOrigin.id}
           origin={confettiOrigin}
-          onDone={() => setConfettiOrigin(null)}
+          onDone={handleConfettiDone}
         />
       )}
 
@@ -309,12 +324,10 @@ const Navbar = () => {
                 />
               </Link>
 
-              {/* Switch Traducere EN | RO (Desktop & Tabletă) */}
               <div className="hidden sm:flex items-center">
                 <LanguageSwitch lang={lang} onToggle={toggleLanguage} />
               </div>
 
-              {/* Toggle Dark/Light Mode */}
               <button
                 onClick={toggleDarkMode}
                 className="p-2 text-white dark:text-gray-300 hover:bg-white/15 rounded-full transition-colors cursor-pointer"
@@ -343,10 +356,10 @@ const Navbar = () => {
                 );
               })}
 
+              {/* [DESKTOP] Confetti DOAR la onClick (fără onMouseEnter) */}
               <Link
                 to="/join"
                 ref={joinBtnRef}
-                onMouseEnter={triggerConfetti}
                 onClick={triggerConfetti}
                 className="relative inline-flex items-center px-6 py-2.5 ml-2 text-sm font-bold text-[#4F0028] dark:text-white bg-white dark:bg-[#4F0028] rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-1"
               >
@@ -400,7 +413,6 @@ const Navbar = () => {
                 })}
               </div>
               <div className="px-6 pb-8 sm:max-w-2xl sm:mx-auto">
-                {/* [MOBIL] Declanșează tot timpul Confetti la apăsare (onClick) */}
                 <Link
                   to="/join"
                   onClick={(e) => {
