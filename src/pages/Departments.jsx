@@ -4,10 +4,10 @@ import { Code, Briefcase, Megaphone, UserPlus, RotateCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const deptMeta = [
-  { icon: <UserPlus size={32} />, image: "/images/departments/hr-photo.jpg" },
-  { icon: <Briefcase size={32} />, image: "/images/departments/fr-photo.jpg" },
-  { icon: <Megaphone size={32} />, image: "/images/departments/pr-photo.jpg" },
-  { icon: <Code size={32} />, image: "/images/departments/it-photo.jpg" },
+  { icon: <UserPlus size={28} />, image: "/images/departments/hr-photo.jpg" },
+  { icon: <Briefcase size={28} />, image: "/images/departments/fr-photo.jpg" },
+  { icon: <Megaphone size={28} />, image: "/images/departments/pr-photo.jpg" },
+  { icon: <Code size={28} />, image: "/images/departments/it-photo.jpg" },
 ];
 
 const DepartmentCard = ({ dept, index, t }) => {
@@ -19,7 +19,7 @@ const DepartmentCard = ({ dept, index, t }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="relative w-full h-[600px] sm:h-[650px] lg:h-[600px] cursor-pointer group perspective-1000"
+      className="relative w-full h-[520px] sm:h-[550px] cursor-pointer group perspective-1000"
       style={{ perspective: "1000px" }}
       onClick={() => setIsFlipped(!isFlipped)}
     >
@@ -32,52 +32,51 @@ const DepartmentCard = ({ dept, index, t }) => {
       >
         {/* --- FAȚA CARDULUI (FRONT) --- */}
         <div
-          className="absolute inset-0 w-full h-full bg-white/90 dark:bg-[#1e0404]/90 backdrop-blur-md rounded-[2.5rem] border border-gray-100 dark:border-rose-950/60 shadow-xl overflow-hidden flex flex-col group-hover:border-[#4F0028]/30 dark:group-hover:border-rose-500/40 group-hover:shadow-[#4F0028]/15 transition-colors duration-500"
+          className="absolute inset-0 w-full h-full bg-white dark:bg-[#1e0404] rounded-[2.5rem] border border-gray-100 dark:border-rose-950/60 shadow-xl overflow-hidden flex flex-col group-hover:border-[#4F0028]/30 dark:group-hover:border-rose-500/40 transition-colors duration-500"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#4F0028] to-rose-500 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top z-10" />
-
-          <div className="p-8 flex-grow flex flex-col h-full">
-            <div className="w-full h-48 mb-6 rounded-2xl overflow-hidden bg-gray-100 dark:bg-[#140202] relative border border-gray-200 dark:border-rose-950/50 flex-shrink-0">
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm font-medium">
-                [ {t("departmentsPage.imagePlaceholder")} {dept.short} ]
-              </div>
-              <img
-                src={dept.image}
-                alt={`${dept.name} Department`}
-                className="w-full h-full object-cover relative z-10 group-hover:scale-105 transition-transform duration-700"
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
-              />
+          {/* Sus: Imagine mai înaltă (trasă mai jos) cu fade lin spre corpul cardului */}
+          <div className="w-full h-64 sm:h-72 relative overflow-hidden bg-gray-100 dark:bg-[#140202] flex-shrink-0">
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm font-medium pb-6">
+              [ {t("departmentsPage.imagePlaceholder")} {dept.short} ]
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start flex-shrink-0">
-              <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-[#2a0505] border border-rose-100 dark:border-rose-900/40 flex items-center justify-center text-[#4F0028] dark:text-rose-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm flex-shrink-0">
-                {dept.icon}
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                    {dept.name}
-                  </h3>
-                  <span className="bg-gray-100 dark:bg-[#2d0707] text-gray-600 dark:text-rose-200 text-xs font-bold px-2 py-1 rounded-md">
-                    {dept.short}
-                  </span>
+            <img
+              src={dept.image}
+              alt={`${dept.name} Department`}
+              className="w-full h-full object-cover object-center relative z-0 group-hover:scale-105 transition-transform duration-700"
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+
+            {/* Gradient de tranziție: elimină tăietura bruscă pe Light & Dark Mode */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#1e0404] dark:via-[#1e0404]/60 dark:to-transparent z-10" />
+          </div>
+
+          {/* Jos: Conținut (Titlu, Iconiță, Motto și buton flip) */}
+          <div className="px-6 pb-6 pt-3 sm:px-8 sm:pb-7 sm:pt-3 flex-grow flex flex-col justify-between relative z-20">
+            <div>
+              <div className="flex items-center gap-3.5 mb-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-[#2a0505] border border-rose-100 dark:border-rose-900/40 flex items-center justify-center text-[#4F0028] dark:text-rose-400 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0">
+                  {dept.icon}
                 </div>
+                <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white leading-tight">
+                  {dept.name}
+                </h3>
               </div>
+
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base leading-relaxed font-medium italic line-clamp-4">
+                "{dept.motto}"
+              </p>
             </div>
 
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed font-medium italic overflow-hidden flex-grow relative line-clamp-[7]">
-              "{dept.motto}"
-            </p>
-
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-rose-950/50 flex items-center justify-between text-[#4F0028] dark:text-rose-400 font-bold flex-shrink-0">
-              <span className="text-sm tracking-wide uppercase">
+            <div className="pt-4 border-t border-gray-100 dark:border-rose-950/50 flex items-center justify-between text-[#4F0028] dark:text-rose-400 font-bold">
+              <span className="text-xs uppercase tracking-wider">
                 {t("departmentsPage.clickToFlip")}
               </span>
               <RotateCw
-                size={20}
+                size={18}
                 className="group-hover:rotate-180 transition-transform duration-500"
               />
             </div>
@@ -86,7 +85,7 @@ const DepartmentCard = ({ dept, index, t }) => {
 
         {/* --- SPATELE CARDULUI (BACK) --- */}
         <div
-          className="absolute inset-0 w-full h-full bg-white dark:bg-[#1e0404] rounded-[2.5rem] border border-[#4F0028]/25 dark:border-rose-900/50 shadow-2xl overflow-hidden flex flex-col p-8 lg:p-12 text-center items-center justify-center"
+          className="absolute inset-0 w-full h-full bg-gradient-to-br from-white to-rose-50/40 dark:from-[#1e0404] dark:to-[#120101] rounded-[2.5rem] border border-[#4F0028]/25 dark:border-rose-900/50 shadow-2xl overflow-hidden flex flex-col p-8 sm:p-10 text-center items-center justify-center"
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
@@ -97,15 +96,17 @@ const DepartmentCard = ({ dept, index, t }) => {
           </div>
 
           <div className="relative z-10 flex flex-col items-center h-full justify-center">
-            <div className="w-20 h-20 rounded-3xl bg-[#4F0028] text-white flex items-center justify-center mb-8 shadow-lg transform rotate-3">
+            <div className="w-16 h-16 rounded-2xl bg-[#4F0028] text-white flex items-center justify-center mb-6 shadow-lg transform rotate-3">
               {dept.icon}
             </div>
 
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-6">
+            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-4">
               {t("departmentsPage.whatWeDo")}
             </h3>
 
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-lg font-medium max-w-sm">
+            <div className="w-12 h-1 bg-[#4F0028] dark:bg-rose-400 mb-6 rounded-full" />
+
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base font-medium max-w-sm">
               {dept.desc}
             </p>
           </div>
