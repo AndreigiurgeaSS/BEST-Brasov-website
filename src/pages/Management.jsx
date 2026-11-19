@@ -1,46 +1,63 @@
 import { motion } from "framer-motion";
+import { Phone, Mail } from "lucide-react";
 import { board, coordinators } from "../data/managementData";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-const TeamCard = ({ member, delay, t }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.4, delay }}
-    className="bg-white dark:bg-[#1e0404] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-rose-950/60 hover:shadow-xl dark:hover:shadow-[#4F0028]/20 transition-all duration-300 group flex flex-col h-full"
-  >
-    <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0">
-      <div className="absolute inset-0 bg-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 mix-blend-multiply" />
-      <img
-        src={member.image}
-        alt={member.name}
-        className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-      />
-    </div>
+const TeamCard = ({ member, delay, t }) => {
+  const hasPhone = typeof member.phone === "string" && member.phone.trim() !== "";
+  const phoneHref = hasPhone ? `tel:${member.phone.replace(/\s+/g, "")}` : "";
 
-    <div className="p-6 text-center flex flex-col flex-grow">
-      <div className="flex flex-col items-center min-h-[80px]">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors leading-tight">
-          {member.name}
-        </h3>
-        <p className="text-[#4F0028] dark:text-rose-400 font-medium text-sm transition-colors leading-snug">
-          {member.roleKey ? t(member.roleKey) : member.role}
-        </p>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay }}
+      className="bg-white dark:bg-[#1e0404] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-rose-950/60 hover:shadow-xl dark:hover:shadow-[#4F0028]/20 transition-all duration-300 group flex flex-col h-full"
+    >
+      <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0">
+        <div className="absolute inset-0 bg-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 mix-blend-multiply" />
+        <img
+          src={member.image}
+          alt={member.name}
+          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+        />
       </div>
 
-      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-rose-950/60 transition-colors">
-        <a
-          href={`mailto:${member.email}`}
-          className="text-gray-600 dark:text-gray-400 hover:text-[#4F0028] dark:hover:text-rose-400 text-sm font-medium transition-colors break-all"
-        >
-          {member.email}
-        </a>
+      <div className="p-6 text-center flex flex-col flex-grow">
+        <div className="flex flex-col items-center min-h-[76px]">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors leading-tight">
+            {member.name}
+          </h3>
+          <p className="text-[#4F0028] dark:text-rose-400 font-semibold text-sm transition-colors leading-snug">
+            {member.roleKey ? t(member.roleKey) : member.role}
+          </p>
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-rose-950/60 transition-colors flex flex-col items-center gap-1.5">
+          <a
+            href={`mailto:${member.email}`}
+            className="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-[#4F0028] dark:hover:text-rose-400 text-sm font-medium transition-colors break-all"
+          >
+            <Mail size={14} className="shrink-0 opacity-75" />
+            <span>{member.email}</span>
+          </a>
+
+          {hasPhone && (
+            <a
+              href={phoneHref}
+              className="inline-flex items-center gap-1.5 text-[#4F0028] dark:text-rose-300 hover:underline text-sm font-bold transition-colors"
+            >
+              <Phone size={14} className="shrink-0" />
+              <span>{member.phone}</span>
+            </a>
+          )}
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const Management = () => {
   const { t, i18n } = useTranslation();
@@ -73,7 +90,7 @@ const Management = () => {
           </motion.p>
         </div>
 
-        {/* Local Board Section */}
+        {/* Local Board Section: Rândul 1 (Președinte, Trezorier, Secretar) + Rândul 2 (Ambii VP) */}
         <div className="mb-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
@@ -88,7 +105,7 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.1} t={t} />
+                <TeamCard member={member} delay={index * 0.08} t={t} />
               </div>
             ))}
           </div>
@@ -109,7 +126,7 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.1} t={t} />
+                <TeamCard member={member} delay={index * 0.08} t={t} />
               </div>
             ))}
           </div>
