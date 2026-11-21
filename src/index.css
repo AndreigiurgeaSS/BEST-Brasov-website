@@ -2,7 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
+html,
+body {
   overflow-x: hidden;
   max-width: 100vw;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Animații GPU-only (0 overhead pe JS) */
+@keyframes best-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes best-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes best-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.25);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.16);
+  }
+}
+
+@keyframes best-float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.animate-spin-70s {
+  animation: best-spin-slow 70s linear infinite;
+}
+.animate-spin-50s-rev {
+  animation: best-spin-reverse 50s linear infinite;
+}
+.animate-spin-35s {
+  animation: best-spin-slow 35s linear infinite;
+}
+.animate-heartbeat {
+  animation: best-heartbeat 1.5s ease-in-out infinite;
+}
+.animate-float-y {
+  animation: best-float-y 1.6s ease-in-out infinite;
+}
+
+/* Oprește instant animațiile decorative când Eco Mode e activ */
+html.eco-mode .animate-spin-70s,
+html.eco-mode .animate-spin-50s-rev,
+html.eco-mode .animate-spin-35s,
+html.eco-mode .animate-heartbeat,
+html.eco-mode .animate-float-y {
+  animation: none !important;
 }

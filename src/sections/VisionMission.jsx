@@ -41,12 +41,12 @@ const VisionMission = () => {
     <section className="relative py-20 sm:py-28 bg-transparent">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Stânga: Titlu + Introducere (fără badge) */}
+          {/* Stânga: Titlu + Introducere */}
           <motion.div
-            initial={{ opacity: 0, x: -24 }}
+            initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
             className="lg:col-span-5 text-center lg:text-left"
           >
             <h2 className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.08]">
@@ -77,20 +77,19 @@ const VisionMission = () => {
             </p>
           </motion.div>
 
-          {/* Dreapta: 2 Carduri Orizontale Stivuite cu bară de accent laterală */}
+          {/* Dreapta: 2 Carduri Orizontale Stivuite */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {items.map((item, idx) => {
               const Icon = item.icon;
               return (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.45, delay: idx * 0.12, ease: "easeOut" }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: idx * 0.1, ease: "easeOut" }}
                   className="group relative bg-white dark:bg-[#1e0406] rounded-3xl p-6 sm:p-8 border border-gray-200/90 dark:border-rose-950/70 hover:border-[#4F0028]/35 dark:hover:border-rose-500/40 shadow-lg hover:shadow-xl dark:shadow-black/40 transition-all duration-300 overflow-hidden"
                 >
-                  {/* Bara verticală de accent pe stânga cardului */}
                   <div
                     aria-hidden="true"
                     className="absolute left-0 top-6 bottom-6 w-1 rounded-r-full bg-gradient-to-b from-[#4F0028] to-rose-500 dark:from-rose-400 dark:to-[#4F0028] opacity-85 group-hover:opacity-100 transition-opacity"

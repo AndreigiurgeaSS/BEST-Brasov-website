@@ -9,19 +9,17 @@ import {
   ChevronsUpDown,
   X,
 } from "lucide-react";
-
-const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSc7SYTuLF4KmYz6FsPWmG41ciPwAqV5CVUNdhuo0762JB5GmA/viewform";
+import { siteConfig } from "../config/siteConfig";
 
 const FAQItem = ({ faq, index, isOpen, toggleOpen }) => {
   const num = String(index + 1).padStart(2, "0");
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.35, delay: index * 0.06 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
       className={`group rounded-2xl border transition-colors duration-300 ${
         isOpen
           ? "bg-white dark:bg-[#220404] border-[#4F0028]/35 dark:border-rose-500/40 shadow-lg shadow-[#4F0028]/5"
@@ -86,6 +84,9 @@ const FAQ = () => {
   const [openIndices, setOpenIndices] = useState([0]);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
+  const formUrl = isRO ? siteConfig.forms.faqRO : siteConfig.forms.faqEN;
+
   const translatedFaqs = t("faqPage.items", { returnObjects: true });
   const faqs = Array.isArray(translatedFaqs) ? translatedFaqs : [];
 
@@ -94,13 +95,9 @@ const FAQ = () => {
   }, [t, i18n.language]);
 
   useEffect(() => {
-    if (isFormOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = isFormOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
   }, [isFormOpen]);
 
@@ -117,17 +114,27 @@ const FAQ = () => {
 
   return (
     <>
-      <div className="pt-32 pb-24 min-h-screen relative transition-colors duration-300 overflow-hidden bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101]">
+      <div className="pt-24 lg:pt-32 pb-24 min-h-screen relative transition-colors duration-300 overflow-x-clip bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101]">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-5%] w-[45%] h-[45%] bg-[#4F0028]/10 dark:bg-[#4F0028]/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-[10%] left-[-10%] w-[40%] h-[40%] bg-[#4F0028]/5 dark:bg-[#4F0028]/15 rounded-full blur-3xl" />
-        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-[-10%] right-[-5%] w-[460px] h-[460px] rounded-full z-0"
+          style={{
+            background: "radial-gradient(circle, rgba(79,0,40,0.16) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[10%] left-[-10%] w-[420px] h-[420px] rounded-full z-0"
+          style={{
+            background: "radial-gradient(circle, rgba(79,0,40,0.12) 0%, transparent 70%)",
+          }}
+        />
 
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-10">
             <motion.h1
-              initial={{ opacity: 0, y: -16 }}
+              initial={{ opacity: 0, y: -14 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-4"
             >
@@ -138,7 +145,7 @@ const FAQ = () => {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: -12 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 }}
               className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
@@ -169,15 +176,20 @@ const FAQ = () => {
             ))}
           </div>
 
-          {/* STILL HAVE QUESTIONS CTA CARD */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            transition={{ duration: 0.35 }}
             className="mt-12 rounded-3xl bg-gradient-to-br from-[#4F0028] to-[#320606] dark:from-[#240310] dark:to-[#120101] border border-white/10 p-7 sm:p-9 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
           >
-            <div className="pointer-events-none absolute -right-12 -top-12 w-48 h-48 bg-rose-500/15 rounded-full blur-3xl" />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-12 -top-12 w-52 h-52 rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(244,63,94,0.22) 0%, transparent 70%)",
+              }}
+            />
 
             <div className="text-center sm:text-left relative z-10">
               <h3 className="text-xl sm:text-2xl font-black mb-1.5">
@@ -211,7 +223,7 @@ const FAQ = () => {
         </div>
       </div>
 
-      {/* MODAL PENTRU GOOGLE FORM */}
+      {/* MODAL GOOGLE FORM (Bilingv EN / RO) */}
       <AnimatePresence>
         {isFormOpen && (
           <motion.div
@@ -219,17 +231,17 @@ const FAQ = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsFormOpen(false)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70"
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.22 }}
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-[#1a0303] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border border-white/20 dark:border-rose-950/60"
             >
-              <div className="flex items-center justify-between p-4 sm:px-6 border-b border-gray-100 dark:border-rose-950/60 bg-gray-50/80 dark:bg-[#140202]/90 backdrop-blur-md">
+              <div className="flex items-center justify-between p-4 sm:px-6 border-b border-gray-100 dark:border-rose-950/60 bg-gray-50 dark:bg-[#140202]">
                 <div className="flex items-center gap-2 text-[#4F0028] dark:text-rose-400">
                   <FileText size={18} />
                   <h3 className="font-bold text-gray-900 dark:text-white">
@@ -247,7 +259,8 @@ const FAQ = () => {
 
               <div className="flex-grow w-full relative bg-gray-50 dark:bg-[#140202]">
                 <iframe
-                  src={GOOGLE_FORM_URL}
+                  key={formUrl}
+                  src={formUrl}
                   className="w-full h-full border-0"
                   title={t("faqPage.modal.title")}
                 >

@@ -20,9 +20,8 @@ import {
   Briefcase,
 } from "lucide-react";
 import { testimonialsRow1, testimonialsRow2 } from "../data/testimonialsData";
-
-const RECRUITMENT_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSc.../viewform?embedded=true";
+import { siteConfig } from "../config/siteConfig";
+import { useEcoMode } from "../context/EcoModeContext";
 
 const benefitIcons = [
   <Globe size={22} className="text-white" />,
@@ -35,26 +34,32 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
-// ─── 1. iPhone Text-Selection Badge: OPEN (Cu loop pe cuvântul OPEN) ─────────
+// ─── 1. Badge OPEN ───────────────────────────────────────────────────────────
 const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
+  const { isEcoMode } = useEcoMode();
   const prefix = `${prefixText} `;
   const word = highlightText;
 
   const [phase, setPhase] = useState("initial");
-  const [prefixCount, setPrefixCount] = useState(0);
-  const [wordCount, setWordCount] = useState(0);
+  const [prefixCount, setPrefixCount] = useState(isEcoMode ? prefix.length : 0);
+  const [wordCount, setWordCount] = useState(isEcoMode ? word.length : 0);
   const [isDeletingWord, setIsDeletingWord] = useState(false);
 
   useEffect(() => {
+    if (isEcoMode) {
+      setPrefixCount(prefix.length);
+      setWordCount(word.length);
+      return;
+    }
     setPhase("initial");
     setPrefixCount(0);
     setWordCount(0);
     setIsDeletingWord(false);
-  }, [prefixText, highlightText]);
+  }, [prefixText, highlightText, isEcoMode, prefix.length, word.length]);
 
   useEffect(() => {
+    if (isEcoMode) return;
     let timer;
-
     if (phase === "initial") {
       if (prefixCount < prefix.length) {
         timer = setTimeout(() => setPrefixCount((c) => c + 1), 48);
@@ -82,60 +87,59 @@ const IPhoneSelectionBadge = ({ prefixText, highlightText, onClick }) => {
       }
     }
     return () => clearTimeout(timer);
-  }, [phase, prefixCount, wordCount, isDeletingWord, prefix.length, word.length]);
-
-  const visiblePrefix = prefix.slice(0, prefixCount);
-  const visibleWord = word.slice(0, wordCount);
+  }, [phase, prefixCount, wordCount, isDeletingWord, prefix.length, word.length, isEcoMode]);
 
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       className="group relative z-20 inline-flex items-center justify-center py-4 px-5 cursor-pointer select-none focus:outline-none"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[#4F0028]/15 dark:bg-rose-500/20 blur-2xl rounded-full opacity-80 group-hover:opacity-100 transition-opacity" />
-
       <div className="relative inline-flex items-center bg-[#4F0028]/12 dark:bg-rose-500/20 border-y border-[#4F0028]/35 dark:border-rose-500/35 px-3 sm:px-4 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[42px] transition-colors">
-        {/* MÂNER STÂNGA (Bulină SUS) */}
-        <div className="absolute left-0 top-0 bottom-0 w-[2.5px] bg-[#4F0028] dark:bg-rose-500 shadow-[0_0_10px_rgba(79,0,40,0.85)]">
-          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028] dark:bg-rose-500 ring-2 ring-white dark:ring-[#320606] shadow-[0_0_12px_rgba(79,0,40,0.9)]" />
+        <div className="absolute left-0 top-0 bottom-0 w-[2.5px] bg-[#4F0028] dark:bg-rose-500">
+          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028] dark:bg-rose-500 ring-2 ring-white dark:ring-[#320606]" />
         </div>
 
-        {/* TEXT */}
         <div className="flex items-center whitespace-pre text-sm sm:text-base md:text-lg tracking-wide font-semibold text-gray-800 dark:text-rose-100">
-          <span>{visiblePrefix}</span>
-          <strong className="font-black text-[#4F0028] dark:text-white tracking-wider uppercase drop-shadow-[0_0_10px_rgba(79,0,40,0.35)]">
-            {visibleWord}
+          <span>{prefix.slice(0, prefixCount)}</span>
+          <strong className="font-black text-[#4F0028] dark:text-white tracking-wider uppercase">
+            {word.slice(0, wordCount)}
           </strong>
         </div>
 
-        {/* MÂNER DREAPTA (Bulină JOS) */}
-        <div className="absolute right-0 top-0 bottom-0 w-[2.5px] bg-[#4F0028] dark:bg-rose-500 shadow-[0_0_10px_rgba(79,0,40,0.85)]">
-          <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028] dark:bg-rose-500 ring-2 ring-white dark:ring-[#320606] shadow-[0_0_12px_rgba(79,0,40,0.9)]" />
+        <div className="absolute right-0 top-0 bottom-0 w-[2.5px] bg-[#4F0028] dark:bg-rose-500">
+          <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028] dark:bg-rose-500 ring-2 ring-white dark:ring-[#320606]" />
         </div>
       </div>
     </motion.button>
   );
 };
 
-// ─── 2. iPhone Text-Selection Badge: CLOSED (Gri, se scrie o singură dată și rămâne așa) ─
+// ─── 2. Badge CLOSED ─────────────────────────────────────────────────────────
 const IPhoneSelectionBadgeClosed = ({ prefixText, highlightText, onClick }) => {
+  const { isEcoMode } = useEcoMode();
   const prefix = `${prefixText} `;
   const word = highlightText;
 
-  const [prefixCount, setPrefixCount] = useState(0);
-  const [wordCount, setWordCount] = useState(0);
+  const [prefixCount, setPrefixCount] = useState(isEcoMode ? prefix.length : 0);
+  const [wordCount, setWordCount] = useState(isEcoMode ? word.length : 0);
 
   useEffect(() => {
+    if (isEcoMode) {
+      setPrefixCount(prefix.length);
+      setWordCount(word.length);
+      return;
+    }
     setPrefixCount(0);
     setWordCount(0);
-  }, [prefixText, highlightText]);
+  }, [prefixText, highlightText, isEcoMode, prefix.length, word.length]);
 
   useEffect(() => {
+    if (isEcoMode) return;
     let timer;
     if (prefixCount < prefix.length) {
       timer = setTimeout(() => setPrefixCount((c) => c + 1), 45);
@@ -143,10 +147,7 @@ const IPhoneSelectionBadgeClosed = ({ prefixText, highlightText, onClick }) => {
       timer = setTimeout(() => setWordCount((c) => c + 1), 75);
     }
     return () => clearTimeout(timer);
-  }, [prefixCount, wordCount, prefix.length, word.length]);
-
-  const visiblePrefix = prefix.slice(0, prefixCount);
-  const visibleWord = word.slice(0, wordCount);
+  }, [prefixCount, wordCount, prefix.length, word.length, isEcoMode]);
 
   return (
     <motion.button
@@ -158,23 +159,18 @@ const IPhoneSelectionBadgeClosed = ({ prefixText, highlightText, onClick }) => {
       whileTap={{ scale: 0.98 }}
       className="group relative z-20 inline-flex items-center justify-center py-4 px-5 cursor-pointer select-none focus:outline-none"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gray-400/15 dark:bg-gray-600/15 blur-2xl rounded-full opacity-75" />
-
       <div className="relative inline-flex items-center bg-gray-200/75 dark:bg-white/[0.06] border-y border-gray-400/50 dark:border-gray-500/40 px-3.5 sm:px-4 py-1.5 sm:py-2 min-h-[38px] sm:min-h-[42px]">
-        {/* MÂNER STÂNGA GRI (Bulină SUS) */}
         <div className="absolute left-0 top-0 bottom-0 w-[2.5px] bg-gray-500 dark:bg-gray-400">
           <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-500 dark:bg-gray-400 ring-2 ring-white dark:ring-[#320606]" />
         </div>
 
-        {/* TEXT ÎN GRI (Se scrie o singură dată fără să se mai repete) */}
         <div className="flex items-center whitespace-pre text-sm sm:text-base md:text-lg tracking-wide font-semibold text-gray-500 dark:text-gray-400">
-          <span>{visiblePrefix}</span>
+          <span>{prefix.slice(0, prefixCount)}</span>
           <strong className="font-black text-gray-700 dark:text-gray-200 tracking-wider uppercase">
-            {visibleWord}
+            {word.slice(0, wordCount)}
           </strong>
         </div>
 
-        {/* MÂNER DREAPTA GRI (Bulină JOS) */}
         <div className="absolute right-0 top-0 bottom-0 w-[2.5px] bg-gray-500 dark:bg-gray-400">
           <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-500 dark:bg-gray-400 ring-2 ring-white dark:ring-[#320606]" />
         </div>
@@ -183,58 +179,22 @@ const IPhoneSelectionBadgeClosed = ({ prefixText, highlightText, onClick }) => {
   );
 };
 
-// ─── Variantele 3D pentru Benefits Carousel (Fără filter:blur animat -> 60 FPS constant) ──
 const cardVariants = {
-  center: {
-    x: "0%",
-    z: 0,
-    rotateY: 0,
-    scale: 1,
-    opacity: 1,
-    zIndex: 10,
-  },
-  left: {
-    x: "-56%",
-    z: -140,
-    rotateY: 22,
-    scale: 0.84,
-    opacity: 0.75,
-    zIndex: 5,
-  },
-  right: {
-    x: "56%",
-    z: -140,
-    rotateY: -22,
-    scale: 0.84,
-    opacity: 0.75,
-    zIndex: 5,
-  },
-  "far-left": {
-    x: "-95%",
-    z: -260,
-    rotateY: 32,
-    scale: 0.68,
-    opacity: 0.25,
-    zIndex: 2,
-  },
-  "far-right": {
-    x: "95%",
-    z: -260,
-    rotateY: -32,
-    scale: 0.68,
-    opacity: 0.25,
-    zIndex: 2,
-  },
+  center: { x: "0%", z: 0, rotateY: 0, scale: 1, opacity: 1, zIndex: 10 },
+  left: { x: "-56%", z: -140, rotateY: 22, scale: 0.84, opacity: 0.75, zIndex: 5 },
+  right: { x: "56%", z: -140, rotateY: -22, scale: 0.84, opacity: 0.75, zIndex: 5 },
+  "far-left": { x: "-95%", z: -260, rotateY: 32, scale: 0.68, opacity: 0.25, zIndex: 2 },
+  "far-right": { x: "95%", z: -260, rotateY: -32, scale: 0.68, opacity: 0.25, zIndex: 2 },
 };
 
-// ─── Benefits 3D Carousel (Același design, tranziție ultra-fluidă GPU) ───────
 const BenefitsCarousel = () => {
   const { t } = useTranslation();
+  const { isEcoMode } = useEcoMode();
   const [virtualCurrent, setVirtualCurrent] = useState(0);
-  const [timerKey, setTimerKey]             = useState(0);
-  const [isPaused, setIsPaused]             = useState(false);
-  const [touchStartX, setTouchStartX]       = useState(null);
-  const [touchEndX, setTouchEndX]           = useState(null);
+  const [timerKey, setTimerKey] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
 
   const translatedItems = t("joinUs.benefitsSection.items", { returnObjects: true });
   const benefits = (Array.isArray(translatedItems) ? translatedItems : []).map((item, idx) => ({
@@ -247,12 +207,12 @@ const BenefitsCarousel = () => {
   const activeRealIndex = mod(virtualCurrent, benefits.length || 1);
 
   useEffect(() => {
-    if (isPaused || totalVirtual === 0) return;
+    if (isPaused || isEcoMode || totalVirtual === 0) return;
     const timer = setInterval(() => {
       setVirtualCurrent((c) => mod(c + 1, totalVirtual));
     }, 7000);
     return () => clearInterval(timer);
-  }, [virtualCurrent, timerKey, isPaused, totalVirtual]);
+  }, [virtualCurrent, timerKey, isPaused, isEcoMode, totalVirtual]);
 
   if (benefits.length === 0) return null;
 
@@ -284,10 +244,10 @@ const BenefitsCarousel = () => {
   };
 
   const slots = [
-    { pos: "far-left",  vIdx: mod(virtualCurrent - 2, totalVirtual) },
-    { pos: "left",      vIdx: mod(virtualCurrent - 1, totalVirtual) },
-    { pos: "center",    vIdx: virtualCurrent },
-    { pos: "right",     vIdx: mod(virtualCurrent + 1, totalVirtual) },
+    { pos: "far-left", vIdx: mod(virtualCurrent - 2, totalVirtual) },
+    { pos: "left", vIdx: mod(virtualCurrent - 1, totalVirtual) },
+    { pos: "center", vIdx: virtualCurrent },
+    { pos: "right", vIdx: mod(virtualCurrent + 1, totalVirtual) },
     { pos: "far-right", vIdx: mod(virtualCurrent + 2, totalVirtual) },
   ];
 
@@ -314,13 +274,7 @@ const BenefitsCarousel = () => {
               initial={false}
               animate={pos}
               whileHover={isCenter ? { scale: 1.02, y: -4 } : { scale: pos.includes("far") ? 0.7 : 0.87 }}
-              transition={{
-                type: "spring",
-                stiffness: 260,
-                damping: 28,
-                mass: 0.85,
-                restDelta: 0.5,
-              }}
+              transition={{ type: "spring", stiffness: 260, damping: 28, mass: 0.85, restDelta: 0.5 }}
               onClick={() => {
                 if (pos === "left" || pos === "far-left") prev();
                 else if (pos === "right" || pos === "far-right") next();
@@ -337,11 +291,10 @@ const BenefitsCarousel = () => {
                   ? "linear-gradient(145deg, #4F0028 0%, #320606 60%, #1c0202 100%)"
                   : "linear-gradient(145deg, #241418 0%, #12090b 100%)",
                 boxShadow: isCenter
-                  ? "0 28px 60px -12px rgba(79,0,40,0.55), 0 0 0 1px rgba(255,255,255,0.15) inset"
-                  : "0 18px 36px -10px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.06) inset",
+                  ? "0 24px 50px -12px rgba(79,0,40,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset"
+                  : "0 16px 32px -10px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06) inset",
               }}
             >
-              {/* Glow intern lejer pe GPU (radial-gradient în loc de filter:blur-3xl care bloca placa video) */}
               {isCenter && (
                 <div
                   className="absolute -top-24 -right-24 w-64 h-64 rounded-full pointer-events-none"
@@ -405,7 +358,7 @@ const BenefitsCarousel = () => {
       <div className="hidden md:flex justify-center items-center gap-5 mt-10">
         <button
           onClick={prev}
-          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95 cursor-pointer"
+          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/90 dark:bg-[#1e0404]/90 active:scale-95 cursor-pointer"
         >
           <ChevronLeft size={22} />
         </button>
@@ -424,7 +377,7 @@ const BenefitsCarousel = () => {
         </div>
         <button
           onClick={next}
-          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/80 dark:bg-[#1e0404]/80 backdrop-blur-sm active:scale-95 cursor-pointer"
+          className="p-3.5 rounded-full border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:border-[#4F0028] hover:text-white transition-all shadow-sm bg-white/90 dark:bg-[#1e0404]/90 active:scale-95 cursor-pointer"
         >
           <ChevronRight size={22} />
         </button>
@@ -433,7 +386,6 @@ const BenefitsCarousel = () => {
   );
 };
 
-// ─── ContactBox ──────────────────────────────────────────────────────────────
 const ContactBox = ({ label, value, displayValue, Icon }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
@@ -475,7 +427,6 @@ const ContactBox = ({ label, value, displayValue, Icon }) => {
   );
 };
 
-// ─── Testimonial Card & Interactive Draggable Marquee (Mai lent + Drag) ──────
 const TestimonialCard = ({ t }) => (
   <div
     className={`relative w-[260px] sm:w-[380px] ${t.bgColor} p-5 sm:p-6 rounded-2xl sm:rounded-[1.5rem] shadow-md flex flex-col flex-shrink-0 md:hover:-translate-y-1 transition-transform duration-300 select-none`}
@@ -511,8 +462,13 @@ const TestimonialCard = ({ t }) => (
   </div>
 );
 
+// ─── Marquee cu auto-pause când iese de pe ecran + suport Eco Mode ───────────
 const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
+  const { isEcoMode } = useEcoMode();
+  const containerRef = useRef(null);
   const trackRef = useRef(null);
+  const isInViewRef = useRef(true);
+
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isTouchPaused, setIsTouchPaused] = useState(false);
@@ -524,6 +480,19 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
   const hasMovedRef = useRef(false);
 
   const expandedList = [...testimonials, ...testimonials, ...testimonials];
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewRef.current = entry.isIntersecting;
+      },
+      { rootMargin: "100px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const measure = useCallback(() => {
     if (!trackRef.current) return;
@@ -549,11 +518,18 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
   }, []);
 
   useEffect(() => {
+    if (isEcoMode) return;
     let rafId;
     const speed = 0.32;
 
     const step = () => {
-      if (!isHovered && !isDragging && !isTouchPaused && halfWidthRef.current > 0) {
+      if (
+        isInViewRef.current &&
+        !isHovered &&
+        !isDragging &&
+        !isTouchPaused &&
+        halfWidthRef.current > 0
+      ) {
         posRef.current = wrapPosition(posRef.current + direction * speed);
         if (trackRef.current) {
           trackRef.current.style.transform = `translate3d(${posRef.current}px, 0, 0)`;
@@ -564,7 +540,7 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
 
     rafId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafId);
-  }, [direction, isHovered, isDragging, isTouchPaused, wrapPosition]);
+  }, [direction, isHovered, isDragging, isTouchPaused, isEcoMode, wrapPosition]);
 
   const handlePointerDown = (clientX) => {
     measure();
@@ -612,6 +588,7 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
 
   return (
     <div
+      ref={containerRef}
       className="relative overflow-hidden w-full py-2 select-none cursor-grab active:cursor-grabbing"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -628,8 +605,8 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
         }
       }}
     >
-      {isTouchPaused && (
-        <div className="md:hidden absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/70 text-white text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm pointer-events-none">
+      {isTouchPaused && !isEcoMode && (
+        <div className="md:hidden absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/75 text-white text-[10px] font-bold uppercase tracking-wider pointer-events-none">
           {pausedText}
         </div>
       )}
@@ -668,15 +645,17 @@ const JoinUs = () => {
   const [showMobileClosedTip, setShowMobileClosedTip] = useState(false);
   const location = useLocation();
 
+  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
+  const { isRecruitmentOpen, contact, forms } = siteConfig;
+
   useEffect(() => {
     document.title = t("joinUs.pageTitle");
   }, [t, i18n.language]);
 
   useEffect(() => {
-    if (isApplyModalOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "unset";
+    document.body.style.overflow = isApplyModalOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
   }, [isApplyModalOpen]);
 
@@ -695,10 +674,6 @@ const JoinUs = () => {
     }
   }, [location]);
 
-  // Când apeși pe bara "Recruitments are OPEN":
-  // Dacă pagina e puțin dată în jos (cum era în prima poză unde bara nu se vedea),
-  // urcă pagina lin la top: 0 FĂRĂ să ascundă Navbar-ul (window.isAutoScrolling = true).
-  // Iar dacă ești deja la top: 0, îți centrează frumos butonul de Apply Now!
   const handleRecruitmentBadgeClick = () => {
     window.isAutoScrolling = true;
     if (window.scrollY > 30) {
@@ -719,9 +694,9 @@ const JoinUs = () => {
     e.preventDefault();
     const body = `Name: ${formData.firstName} ${formData.lastName}\nContact Email: ${formData.email}\n\nMessage:\n${formData.message}`;
     window.open(
-      `https://mail.google.com/mail/?view=cm&fs=1&to=bv-board@BEST-eu.org&su=${encodeURIComponent(
-        formData.subject
-      )}&body=${encodeURIComponent(body)}`,
+      `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+        contact.email
+      )}&su=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(body)}`,
       "_blank"
     );
   };
@@ -731,42 +706,47 @@ const JoinUs = () => {
     setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
-
   return (
     <>
-      <div className="pt-28 sm:pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-5%] w-[50%] h-[50%] bg-[#4F0028]/10 dark:bg-[#4F0028]/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-[20%] left-[-10%] w-[40%] h-[40%] bg-[#4F0028]/5 dark:bg-[#4F0028]/15 rounded-full blur-3xl" />
-        </div>
+      <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-x-clip relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-[-10%] right-[-5%] w-[520px] h-[520px] rounded-full z-0"
+          style={{
+            background: "radial-gradient(circle, rgba(79,0,40,0.16) 0%, transparent 70%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[20%] left-[-10%] w-[440px] h-[440px] rounded-full z-0"
+          style={{
+            background: "radial-gradient(circle, rgba(79,0,40,0.12) 0%, transparent 70%)",
+          }}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* HERO */}
-          <div id="join-hero-top" className="text-center max-w-4xl mx-auto mb-20 sm:mb-24 scroll-mt-28">
-            {/* ── 1. BARA OPEN (Activă acum) ── 
+          {/* HERO (controlat automat din siteConfig.isRecruitmentOpen) */}
+          <div id="join-hero-top" className="text-center max-w-4xl mx-auto mb-20 sm:mb-24 scroll-mt-24">
             <div className="mb-8 flex justify-center">
-              <IPhoneSelectionBadge
-                prefixText={t("joinUs.hero.badgeOpen")}
-                highlightText={t("joinUs.hero.badgeOpenStrong")}
-                onClick={handleRecruitmentBadgeClick}
-              />
-            </div>*/}
-
-            {/* ── 2. BARA CLOSED ÎN STIL IPHONE GRI (Se scrie o singură dată și rămâne așa — decomentează când recrutările sunt ÎNCHISE) ──*/}
-            <div className="mb-8 flex justify-center">
-              <IPhoneSelectionBadgeClosed
-                prefixText={isRO ? "Recrutările sunt" : "Recruitments are"}
-                highlightText={isRO ? "ÎNCHISE" : "CLOSED"}
-                onClick={handleRecruitmentBadgeClick}
-              />
+              {isRecruitmentOpen ? (
+                <IPhoneSelectionBadge
+                  prefixText={t("joinUs.hero.badgeOpen")}
+                  highlightText={t("joinUs.hero.badgeOpenStrong")}
+                  onClick={handleRecruitmentBadgeClick}
+                />
+              ) : (
+                <IPhoneSelectionBadgeClosed
+                  prefixText={isRO ? "Recrutările sunt" : "Recruitments are"}
+                  highlightText={isRO ? "ÎNCHISE" : "CLOSED"}
+                  onClick={handleRecruitmentBadgeClick}
+                />
+              )}
             </div>
-            
 
             <motion.h1
-              initial={{ opacity: 0, y: -30 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.08 }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight mb-6 sm:mb-8 transition-colors"
             >
               {t("joinUs.hero.title1")} <br className="hidden md:block" />
@@ -776,9 +756,9 @@ const JoinUs = () => {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: -30 }}
+              initial={{ opacity: 0, y: -16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.16 }}
               className="text-base sm:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed"
             >
               {t("joinUs.hero.subtitle")}
@@ -786,45 +766,45 @@ const JoinUs = () => {
 
             <motion.div
               id="apply-action"
-              initial={{ opacity: 0, y: -30 }}
+              initial={{ opacity: 0, y: -14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.24 }}
               className="relative inline-block group scroll-mt-36"
             >
-              {/* ── VARIANTA A: APPLY BUTTON ACTIV (Decomentează când recrutările sunt OPEN) ──
-              <button
-                type="button"
-                onClick={() => setIsApplyModalOpen(true)}
-                className="inline-flex items-center gap-3 bg-[#4F0028] hover:bg-[#320606] text-white px-10 py-4 rounded-full font-black text-lg transition-all shadow-lg shadow-[#4F0028]/25 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
-              >
-                {t("joinUs.hero.applyBtn")}
-              </button>
-              */}
+              {isRecruitmentOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setIsApplyModalOpen(true)}
+                  className="inline-flex items-center gap-3 bg-[#4F0028] hover:bg-[#320606] text-white px-10 py-4 rounded-full font-black text-lg transition-all shadow-lg shadow-[#4F0028]/25 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                >
+                  {t("joinUs.hero.applyBtn")}
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    aria-disabled="true"
+                    onClick={() => {
+                      if (window.innerWidth < 768) {
+                        setShowMobileClosedTip((v) => !v);
+                      }
+                    }}
+                    onMouseLeave={() => setShowMobileClosedTip(false)}
+                    className="inline-flex items-center gap-3 bg-gray-300 dark:bg-[#2a0606] text-gray-500 dark:text-gray-400 px-10 py-4 rounded-full font-black text-lg cursor-not-allowed transition-all select-none"
+                  >
+                    {t("joinUs.hero.applyBtn")}
+                  </button>
 
-              {/* ── VARIANTA B: APPLY BUTTON ÎNCHIS (FĂRĂ atributul `disabled` ca să meargă tap-ul pe mobil și hover-ul pe laptop) ── */}
-              <button
-                type="button"
-                aria-disabled="true"
-                onClick={() => {
-                  // Doar pe mobil (sub 768px) comută tooltip-ul la click/tap; pe laptop merge strict din hover (group-hover)
-                  if (window.innerWidth < 768) {
-                    setShowMobileClosedTip((v) => !v);
-                  }
-                }}
-                onMouseLeave={() => setShowMobileClosedTip(false)}
-                className="inline-flex items-center gap-3 bg-gray-300 dark:bg-[#2a0606] text-gray-500 dark:text-gray-400 px-10 py-4 rounded-full font-black text-lg cursor-not-allowed transition-all select-none"
-              >
-                {t("joinUs.hero.applyBtn")}
-              </button>
-
-              <div
-                className={`absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] sm:w-[280px] px-4 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-medium rounded-xl shadow-xl transition-opacity duration-300 pointer-events-none z-30 ${
-                  showMobileClosedTip ? "opacity-100" : "opacity-0"
-                } md:opacity-0 md:group-hover:opacity-100`}
-              >
-                {t("joinUs.hero.closedTooltip1")} <br /> {t("joinUs.hero.closedTooltip2")}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900 dark:border-b-white" />
-              </div>
+                  <div
+                    className={`absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[260px] sm:w-[280px] px-4 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs sm:text-sm font-medium rounded-xl shadow-xl transition-opacity duration-300 pointer-events-none z-30 ${
+                      showMobileClosedTip ? "opacity-100" : "opacity-0"
+                    } md:opacity-0 md:group-hover:opacity-100`}
+                  >
+                    {t("joinUs.hero.closedTooltip1")} <br /> {t("joinUs.hero.closedTooltip2")}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900 dark:border-b-white" />
+                  </div>
+                </>
+              )}
             </motion.div>
           </div>
 
@@ -840,7 +820,7 @@ const JoinUs = () => {
           </div>
         </div>
 
-        {/* TESTIMONIALS (DRAGGABLE & SLOWER MARQUEE) */}
+        {/* TESTIMONIALS */}
         <div className="mb-24 sm:mb-32 w-full relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-10 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -870,12 +850,12 @@ const JoinUs = () => {
 
         {/* CONTACT */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div id="contact" className="scroll-mt-32">
+          <div id="contact" className="scroll-mt-28">
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
               className="bg-white dark:bg-[#1e0404] rounded-[2rem] sm:rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 p-6 sm:p-8 md:p-12 overflow-hidden relative"
             >
               <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-rose-50/50 to-transparent dark:from-[#4F0028]/15 pointer-events-none rounded-tr-[2.5rem] rounded-br-[2.5rem]" />
@@ -896,15 +876,13 @@ const JoinUs = () => {
                 <div className="lg:col-span-5 flex flex-col gap-4">
                   <ContactBox
                     label={t("joinUs.contact.emailLabel")}
-                    value="bv-board@BEST-eu.org"
+                    value={contact.email}
                     Icon={Mail}
                   />
-
-                  {/* NUMAR DE TELEFON (cand trebuie schimbat) */}
                   <ContactBox
                     label={t("joinUs.contact.phoneLabel")}
-                    value="+40 730 827 778"
-                    displayValue="+40 730 827 778"
+                    value={contact.phone}
+                    displayValue={contact.phoneDisplay}
                     Icon={Phone}
                   />
                   <div className="flex items-start gap-3 px-4 py-2">
@@ -1038,7 +1016,7 @@ const JoinUs = () => {
         </div>
       </div>
 
-      {/* POP-UP MODAL */}
+      {/* POP-UP MODAL RECRUTARE */}
       <AnimatePresence>
         {isApplyModalOpen && (
           <motion.div
@@ -1046,21 +1024,21 @@ const JoinUs = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsApplyModalOpen(false)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/65 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70"
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ duration: 0.22 }}
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-[#1a0303] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border border-white/20 dark:border-rose-950/60"
             >
-              <div className="flex items-center justify-between p-4 sm:px-6 border-b border-gray-100 dark:border-rose-950/60 bg-gray-50/90 dark:bg-[#140202]/90 backdrop-blur-md">
+              <div className="flex items-center justify-between p-4 sm:px-6 border-b border-gray-100 dark:border-rose-950/60 bg-gray-50 dark:bg-[#140202]">
                 <div className="flex items-center gap-2.5 text-[#4F0028] dark:text-rose-400">
                   <FileText size={18} />
                   <h3 className="font-black text-gray-900 dark:text-white text-sm sm:text-base">
-                    {t("joinUs.hero.applyBtn")} — BEST Brașov
+                    {t("joinUs.hero.applyBtn")} · BEST Brașov
                   </h3>
                 </div>
                 <button
@@ -1072,7 +1050,7 @@ const JoinUs = () => {
               </div>
               <div className="flex-grow w-full relative bg-gray-50 dark:bg-[#140202]">
                 <iframe
-                  src={RECRUITMENT_FORM_URL}
+                  src={forms.recruitment}
                   className="w-full h-full border-0"
                   title="BEST Brașov Recruitment Form"
                 >

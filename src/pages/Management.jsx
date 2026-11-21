@@ -16,11 +16,13 @@ const TeamCard = ({ member, delay, t }) => {
       transition={{ duration: 0.4, delay }}
       className="bg-white dark:bg-[#1e0404] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-rose-950/60 hover:shadow-xl dark:hover:shadow-[#4F0028]/20 transition-all duration-300 group flex flex-col h-full"
     >
-      <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0">
+      <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0 bg-gray-100 dark:bg-[#140202]">
         <div className="absolute inset-0 bg-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 mix-blend-multiply" />
         <img
           src={member.image}
           alt={member.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
         />
       </div>
@@ -67,11 +69,11 @@ const Management = () => {
   }, [t, i18n.language]);
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-20">
+        <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-20">
           <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-black text-gray-900 dark:text-white sm:text-5xl mb-6 transition-colors"
           >
@@ -83,14 +85,13 @@ const Management = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.15 }}
             className="text-lg text-gray-600 dark:text-gray-300 transition-colors"
           >
             {t("managementPage.subtitle")}
           </motion.p>
         </div>
 
-        {/* Local Board Section: Rândul 1 (Președinte, Trezorier, Secretar) + Rândul 2 (Ambii VP) */}
         <div className="mb-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
@@ -105,13 +106,12 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.08} t={t} />
+                <TeamCard member={member} delay={index * 0.06} t={t} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Coordinators Section */}
         <div>
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">
@@ -126,7 +126,7 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.08} t={t} />
+                <TeamCard member={member} delay={index * 0.06} t={t} />
               </div>
             ))}
           </div>

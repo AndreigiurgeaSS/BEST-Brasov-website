@@ -11,38 +11,32 @@ import {
   academicalPartners,
 } from "../data/partnersData";
 
-// Stiluri distincte pentru fiecare dosar, inspirate din paleta BEST Brașov
 const FOLDER_THEMES = [
   {
-    // 0: Year-round (Burgundy principal)
     tab: "bg-[#4F0028] text-white border-[#7a0b3b] dark:bg-[#4F0028] dark:text-white dark:border-rose-400/40",
     body: "bg-[#4F0028] border-[#7a0b3b] dark:bg-[#3a001e] dark:border-rose-400/35",
     count: "text-rose-200/80",
     offset: "ml-0 md:ml-[2%]",
   },
   {
-    // 1: Technical (Alb curat)
     tab: "bg-white text-gray-900 border-[#4F0028]/25 dark:bg-[#FAF8F9] dark:text-gray-900 dark:border-rose-200/50",
     body: "bg-white border-[#4F0028]/25 dark:bg-[#FAF8F9] dark:border-rose-200/40",
     count: "text-[#4F0028]/70",
     offset: "ml-2 sm:ml-4 md:ml-[18%]",
   },
   {
-    // 2: Food & Prizes (Rose pal / Burgundy soft pe dark)
     tab: "bg-rose-50 text-[#4F0028] border-[#4F0028]/25 dark:bg-[#2d0713] dark:text-rose-100 dark:border-rose-400/35",
     body: "bg-rose-50 border-[#4F0028]/25 dark:bg-[#24050f] dark:border-rose-400/30",
     count: "text-[#4F0028]/65 dark:text-rose-300/75",
     offset: "ml-4 sm:ml-8 md:ml-[34%]",
   },
   {
-    // 3: Logistics (Dark Wine)
     tab: "bg-[#26040e] text-white border-[#4F0028]/60 dark:bg-[#190207] dark:text-rose-50 dark:border-rose-500/35",
     body: "bg-[#26040e] border-[#4F0028]/60 dark:bg-[#160206] dark:border-rose-500/30",
     count: "text-rose-300/75",
     offset: "ml-6 sm:ml-12 md:ml-[48%]",
   },
   {
-    // 4: Academic (Ivory / Crem neutru)
     tab: "bg-[#F5EEF1] text-[#320606] border-[#4F0028]/25 dark:bg-[#EFE6EA] dark:text-[#2a040e] dark:border-rose-200/45",
     body: "bg-[#F5EEF1] border-[#4F0028]/25 dark:bg-[#EFE6EA] dark:border-rose-200/40",
     count: "text-[#4F0028]/70",
@@ -50,7 +44,6 @@ const FOLDER_THEMES = [
   },
 ];
 
-// ── Card individual de partener (memoizat pentru 60 FPS pe folderele mari) ───
 const PartnerCard = memo(({ partner, large, moreInfoLabel, visitSiteTitle }) => (
   <div
     className={`relative flex flex-col overflow-hidden bg-white dark:bg-[#1a0303] rounded-2xl border border-[#4F0028]/25 hover:border-[#4F0028]/65 dark:border-rose-500/30 dark:hover:border-rose-400/70 shadow-[0_6px_18px_rgba(79,0,40,0.08)] hover:shadow-[0_14px_28px_rgba(79,0,40,0.18)] dark:shadow-black/40 transition-all duration-300 group ${
@@ -59,11 +52,11 @@ const PartnerCard = memo(({ partner, large, moreInfoLabel, visitSiteTitle }) => 
         : "w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.85rem)] lg:w-[calc(25%-0.95rem)] min-h-[145px] sm:min-h-[170px]"
     } lg:hover:-translate-y-1`}
   >
-    {/* Zona Logo: 100% Alb neutru + Color, neclickabil (safe la scroll pe mobil) */}
     <div className="flex-1 bg-white dark:bg-[#FAF8F9] flex items-center justify-center p-5 sm:p-6 pointer-events-none relative z-10">
       <img
         src={partner.logo}
         alt={partner.name}
+        loading="lazy"
         decoding="async"
         className={`object-contain w-full transition-transform duration-300 lg:group-hover:scale-105 ${
           large ? "max-h-20 sm:max-h-28" : "max-h-12 sm:max-h-16"
@@ -91,7 +84,6 @@ const PartnerCard = memo(({ partner, large, moreInfoLabel, visitSiteTitle }) => 
   </div>
 ));
 
-// ── Un dosar din sertar (tranziție pură CSS Grid, 0 lag la 17+ imagini) ──────
 const PartnerFolder = ({ section, index, isOpen, onToggle, registerRef, t }) => {
   const theme = FOLDER_THEMES[index % FOLDER_THEMES.length];
   const countLabel = String(section.partners.length).padStart(2, "0");
@@ -105,7 +97,6 @@ const PartnerFolder = ({ section, index, isOpen, onToggle, registerRef, t }) => 
       } ${!isOpen ? "hover:-translate-y-1.5" : ""}`}
       style={{ zIndex: 10 + index * 10 }}
     >
-      {/* Tab-ul decalat al dosarului */}
       <div className={`${theme.offset} relative z-20 inline-block max-w-[calc(100%-1rem)]`}>
         <button
           type="button"
@@ -130,11 +121,9 @@ const PartnerFolder = ({ section, index, isOpen, onToggle, registerRef, t }) => 
         </button>
       </div>
 
-      {/* Corpul dosarului */}
       <div
         className={`relative z-10 rounded-2xl sm:rounded-3xl border shadow-[0_-6px_20px_rgba(0,0,0,0.11)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.5)] overflow-hidden transition-colors ${theme.body}`}
       >
-        {/* Banda superioară vizibilă mereu când dosarul e închis */}
         <button
           type="button"
           onClick={onToggle}
@@ -144,7 +133,6 @@ const PartnerFolder = ({ section, index, isOpen, onToggle, registerRef, t }) => 
           }`}
         />
 
-        {/* Conținutul dosarului: rămâne montat și se animă prin CSS grid-template-rows (60 FPS) */}
         <div
           className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
             isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0 pointer-events-none"
@@ -171,7 +159,6 @@ const PartnerFolder = ({ section, index, isOpen, onToggle, registerRef, t }) => 
   );
 };
 
-// ── Partners Page ─────────────────────────────────────────────────────────────
 const Partners = () => {
   const { t, i18n } = useTranslation();
   const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
@@ -222,7 +209,6 @@ const Partners = () => {
     [sections]
   );
 
-  // Suportă atât mod accordion (1 deschis), cât și "Expand all" (toate deschise)
   const [openIds, setOpenIds] = useState(() => (sections[0] ? [sections[0].id] : []));
   const folderRefs = useRef({});
   const scrollLockRafRef = useRef(null);
@@ -234,17 +220,16 @@ const Partners = () => {
     };
   }, []);
 
-  // Păstrează folderul apăsat exact în locul din care a fost deschis (fără jump spre Footer)
   const lockFolderPosition = useCallback((id) => {
     const el = folderRefs.current[id];
     if (!el) return;
 
-    const targetTop = Math.max(108, el.getBoundingClientRect().top);
+    const targetTop = Math.max(92, el.getBoundingClientRect().top);
     if (scrollLockRafRef.current) cancelAnimationFrame(scrollLockRafRef.current);
 
     window.isAutoScrolling = true;
     const startTime = performance.now();
-    const LOCK_DURATION = 360; // puțin peste tranziția CSS de 300ms
+    const LOCK_DURATION = 360;
 
     const keepLocked = (now) => {
       const currentEl = folderRefs.current[id];
@@ -271,15 +256,8 @@ const Partners = () => {
       lockFolderPosition(id);
 
       setOpenIds((prev) => {
-        const isAlreadyOpen = prev.includes(id);
-        if (isAlreadyOpen) {
-          return prev.filter((item) => item !== id);
-        }
-        // Dacă sunt deja mai multe deschise (ex. după Expand All), doar îl adăugăm pe acesta
-        if (prev.length > 1) {
-          return [...prev, id];
-        }
-        // Altfel, comportament curat de sertar (deschide noul dosar, îl închide pe cel anterior)
+        if (prev.includes(id)) return prev.filter((item) => item !== id);
+        if (prev.length > 1) return [...prev, id];
         return [id];
       });
     },
@@ -298,12 +276,11 @@ const Partners = () => {
   };
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-x-clip">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-x-clip">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
           <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl font-black text-gray-900 dark:text-white sm:text-5xl mb-5 transition-colors"
           >
@@ -322,7 +299,6 @@ const Partners = () => {
           </motion.p>
         </div>
 
-        {/* Bara de control: Expand All / Collapse All (ca la FAQ) */}
         <div className="flex justify-end mb-4 px-1 sm:px-3">
           <button
             type="button"
@@ -342,15 +318,13 @@ const Partners = () => {
           </button>
         </div>
 
-        {/* ── SERTARUL DE DOSARE (FILING CABINET) ── */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
           className="relative"
           style={{ overflowAnchor: "none" }}
         >
-          {/* Dosarele suprapuse */}
           <div className="relative px-1 sm:px-3">
             {sections.map((section, index) => (
               <PartnerFolder
@@ -367,12 +341,8 @@ const Partners = () => {
             ))}
           </div>
 
-          {/* Fața sertarului (baza cu mâner decupat) */}
           <div className="relative z-[80] -mt-6 sm:-mt-7 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#180205] border border-[#4F0028]/25 dark:border-rose-400/25 shadow-[0_18px_40px_rgba(79,0,40,0.12)] dark:shadow-[0_24px_55px_rgba(0,0,0,0.75)] overflow-hidden">
-            {/* Buza superioară a sertarului */}
             <div className="h-2.5 sm:h-3 bg-gradient-to-b from-gray-100 to-white dark:from-white/10 dark:to-transparent border-b border-gray-200/80 dark:border-white/10" />
-
-            {/* Mânerul decupat + etichetă discretă */}
             <div className="py-6 sm:py-7 flex flex-col items-center justify-center gap-3">
               <div className="w-24 sm:w-32 h-3.5 sm:h-4 rounded-full bg-[#320606] dark:bg-[#090001] shadow-[inset_0_2px_6px_rgba(0,0,0,0.65)] ring-1 ring-black/10 dark:ring-rose-500/20" />
               <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#4F0028]/45 dark:text-rose-200/35 select-none">
@@ -383,14 +353,19 @@ const Partners = () => {
           </div>
         </motion.div>
 
-        {/* CALL TO ACTION: BECOME A PARTNER */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mt-20 mb-6 rounded-[2.5rem] bg-gradient-to-br from-[#4F0028] to-[#320606] dark:from-[#240310] dark:to-[#120101] border border-white/10 p-8 sm:p-12 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left"
         >
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(244,63,94,0.22) 0%, transparent 70%)",
+            }}
+          />
 
           <div className="relative z-10 max-w-2xl">
             <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">

@@ -9,6 +9,7 @@ import {
 import { Star, Users, Unlock, Lightbulb, TrendingUp } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useEcoMode } from "../context/EcoModeContext";
 
 const valueIcons = [Star, Users, Unlock, Lightbulb, TrendingUp];
 
@@ -68,7 +69,6 @@ const CylinderCard = ({
     return isMobile ? 0.72 + depth * 0.28 : 0.65 + depth * 0.35;
   });
 
-  // Jumătatea din spate dispare curat (fără text suprapus și mai puține layere pe GPU)
   const opacity = useTransform(rotation, (r) => {
     const rad = ((r + baseAngle) * Math.PI) / 180;
     const cos = Math.cos(rad);
@@ -146,47 +146,20 @@ const CylinderCard = ({
         }}
         className="relative w-full h-full rounded-[1.75rem] bg-white dark:bg-[#1a0303] border border-gray-200/90 dark:border-rose-950/70 md:hover:border-[#4F0028]/70 dark:md:hover:border-rose-400/60 shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.65)] md:hover:shadow-[0_20px_45px_rgba(79,0,40,0.28)] transition-colors duration-300 p-4 sm:p-5 flex flex-col items-center justify-center text-center overflow-hidden group"
       >
-        <motion.div
-          className="pointer-events-none absolute inset-0 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
-          style={{ background: spotlightBg }}
-        />
-
-        <motion.div
-          initial={false}
-          animate={isHovered && !isMobile ? { x: ["-130%", "130%"] } : { x: "-130%" }}
-          transition={{ duration: 0.75, ease: "easeInOut" }}
-          className="pointer-events-none absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/15 dark:via-white/[0.06] to-transparent -skew-x-12"
-        />
+        {!isMobile && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300"
+            style={{ background: spotlightBg }}
+          />
+        )}
 
         <div
           className="relative mb-3 sm:mb-3.5 flex items-center justify-center"
           style={{ transform: "translateZ(24px)" }}
         >
-          <motion.div
-            animate={
-              isHovered && !isMobile
-                ? { scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }
-                : { scale: 0.8, opacity: 0 }
-            }
-            transition={{
-              duration: 1.6,
-              repeat: isHovered && !isMobile ? Infinity : 0,
-              ease: "easeInOut",
-            }}
-            className="absolute inset-0 rounded-2xl bg-[#4F0028]/35 blur-md pointer-events-none"
-          />
-
-          <motion.div
-            animate={
-              isHovered && !isMobile
-                ? { y: -4, scale: 1.12, rotate: [0, -7, 7, 0] }
-                : { y: 0, scale: 1, rotate: 0 }
-            }
-            transition={{ duration: 0.45, ease: "easeOut" }}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 dark:bg-[#2d0707] border border-rose-100 dark:border-rose-900/50 md:group-hover:bg-gradient-to-br md:group-hover:from-[#4F0028] md:group-hover:to-[#7a0b3b] md:group-hover:border-transparent flex items-center justify-center text-[#4F0028] dark:text-rose-400 md:group-hover:text-white shadow-sm md:group-hover:shadow-lg md:group-hover:shadow-[#4F0028]/40 transition-colors duration-300"
-          >
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 dark:bg-[#2d0707] border border-rose-100 dark:border-rose-900/50 md:group-hover:bg-gradient-to-br md:group-hover:from-[#4F0028] md:group-hover:to-[#7a0b3b] md:group-hover:border-transparent flex items-center justify-center text-[#4F0028] dark:text-rose-400 md:group-hover:text-white shadow-sm transition-colors duration-300">
             <Icon className="w-5 h-5" />
-          </motion.div>
+          </div>
         </div>
 
         <h3
@@ -209,6 +182,10 @@ const CylinderCard = ({
 
 const CoreValues = () => {
   const { t } = useTranslation();
+  const { isEcoMode } = useEcoMode();
+
+  const sectionRef = useRef(null);
+  const isInViewRef = useRef(true);
 
   const [dims, setDims] = useState({
     radius: 380,
@@ -222,34 +199,30 @@ const CoreValues = () => {
     const updateDims = () => {
       const w = window.innerWidth;
       if (w < 640) {
-        setDims({
-          radius: 155,
-          cardW: 185,
-          cardH: 225,
-          stageH: 315,
-          isMobile: true,
-        });
+        setDims({ radius: 155, cardW: 185, cardH: 225, stageH: 315, isMobile: true });
       } else if (w < 1024) {
-        setDims({
-          radius: 300,
-          cardW: 195,
-          cardH: 235,
-          stageH: 360,
-          isMobile: false,
-        });
+        setDims({ radius: 300, cardW: 195, cardH: 235, stageH: 360, isMobile: false });
       } else {
-        setDims({
-          radius: 380,
-          cardW: 215,
-          cardH: 250,
-          stageH: 400,
-          isMobile: false,
-        });
+        setDims({ radius: 380, cardW: 215, cardH: 250, stageH: 400, isMobile: false });
       }
     };
     updateDims();
     window.addEventListener("resize", updateDims);
     return () => window.removeEventListener("resize", updateDims);
+  }, []);
+
+  // Oprește bucla 3D când secțiunea nu este vizibilă pe ecran (economisește mult CPU/baterie pe mobil)
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewRef.current = entry.isIntersecting;
+      },
+      { rootMargin: "120px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const translatedItems = t("coreValues.items", { returnObjects: true });
@@ -280,9 +253,11 @@ const CoreValues = () => {
   const resumeTimeoutRef = useRef(null);
 
   useAnimationFrame((_, delta) => {
-    if (isDragging.current || isCentering.current) return;
+    if (isEcoMode || !isInViewRef.current || isDragging.current || isCentering.current) {
+      return;
+    }
     const degPerMs = -0.0085 * smoothSpeed.get();
-    rotation.set(rotation.get() + delta * degPerMs);
+    rotation.set(rotation.get() + Math.min(delta, 40) * degPerMs);
   });
 
   useEffect(() => {
@@ -319,7 +294,7 @@ const CoreValues = () => {
       damping: 20,
       onComplete: () => {
         isCentering.current = false;
-        if (dims.isMobile) {
+        if (dims.isMobile && !isEcoMode) {
           resumeTimeoutRef.current = setTimeout(() => {
             if (!isDragging.current) targetSpeed.set(1);
           }, 1800);
@@ -360,9 +335,9 @@ const CoreValues = () => {
     : "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)";
 
   return (
-    <section className="relative pt-12 sm:pt-14 pb-16 bg-transparent">
-      {/* Glow lejer pe GPU (radial-gradient în loc de blur-3xl) */}
+    <section ref={sectionRef} className="relative pt-12 sm:pt-14 pb-16 bg-transparent">
       <div
+        aria-hidden="true"
         className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85vw] max-w-[760px] h-[280px] z-0"
         style={{
           background:

@@ -30,12 +30,9 @@ const TYPE_COLOR = { public: "#3b82f6", internal: "#e11d48", intl: "#f59e0b" };
 const pad = (n) => String(n).padStart(2, "0");
 const toKey = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
-// Expandează un eveniment care are `date`, `dates: [...]` sau `startDate` + `endDate`
 function expandEventDates(item) {
   const results = [];
-  if (item.date) {
-    results.push(item.date);
-  }
+  if (item.date) results.push(item.date);
   if (Array.isArray(item.dates)) {
     item.dates.forEach((d) => {
       if (d && !results.includes(d)) results.push(d);
@@ -57,7 +54,6 @@ function expandEventDates(item) {
   return results;
 }
 
-// ── Header de secțiune ───────────────────────────────────────────────────────
 const SectionHeader = ({ icon: Icon, title, subtitle }) => (
   <div className="flex flex-col items-center text-center mb-10">
     <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1e0404] shadow-md border border-gray-100 dark:border-rose-950/60 flex items-center justify-center text-[#4F0028] dark:text-rose-400 mb-4">
@@ -68,7 +64,6 @@ const SectionHeader = ({ icon: Icon, title, subtitle }) => (
   </div>
 );
 
-// ── Calendar complet + panou de agendă (Optimizat Mobil & Desktop) ───────────
 const CalendarSection = ({ events }) => {
   const { t, i18n } = useTranslation();
   const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
@@ -81,7 +76,6 @@ const CalendarSection = ({ events }) => {
   const now = new Date();
   const todayKey = toKey(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Expandăm toate evenimentele pe fiecare zi pe care o ocupă
   const dated = useMemo(() => {
     const list = [];
     events.forEach((e) => {
@@ -101,7 +95,6 @@ const CalendarSection = ({ events }) => {
     return acc;
   }, [dated]);
 
-  // Lunile care conțin evenimente (pentru butoanele de salt rapid)
   const eventMonths = useMemo(() => {
     const map = new Map();
     dated.forEach((e) => {
@@ -156,7 +149,6 @@ const CalendarSection = ({ events }) => {
   );
   const dayEvents = byDate[sel] || [];
 
-  // La upcoming afișăm evenimente unice după titlu
   const upcoming = useMemo(() => {
     const seen = new Set();
     const res = [];
@@ -177,12 +169,12 @@ const CalendarSection = ({ events }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -16 }}
+      initial={{ opacity: 0, y: -14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.45 }}
       className="mb-24 sm:mb-28 max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] bg-white dark:bg-[#1e0404] rounded-[2rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden"
     >
-      {/* Stânga: Grila lunii (compactă pe mobil ca să se vadă toată luna dintr-un foc) */}
+      {/* Stânga: Grila lunii */}
       <div className="p-4 sm:p-7">
         <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
           <div>
@@ -218,7 +210,6 @@ const CalendarSection = ({ events }) => {
           </div>
         </div>
 
-        {/* Salt rapid la lunile care au evenimente */}
         {eventMonths.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-hide">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0 mr-1 flex items-center gap-1">
@@ -244,7 +235,6 @@ const CalendarSection = ({ events }) => {
           </div>
         )}
 
-        {/* Zilele săptămânii */}
         <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-1">
           {weekdays.map((w) => (
             <span
@@ -256,7 +246,6 @@ const CalendarSection = ({ events }) => {
           ))}
         </div>
 
-        {/* Zilele lunii — h-10 pe mobil și sm:aspect-square pe desktop */}
         <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
           {Array.from({ length: lead }).map((_, i) => (
             <div key={`b${i}`} className="h-10 sm:h-auto sm:aspect-square" />
@@ -299,7 +288,13 @@ const CalendarSection = ({ events }) => {
 
       {/* Dreapta: Panou Agendă */}
       <div className="relative bg-gradient-to-br from-[#4F0028] to-[#1e0404] text-white p-5 sm:p-7 flex flex-col gap-4 min-h-[340px] lg:min-h-[440px] overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-44 h-44 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)",
+          }}
+        />
         <div className="relative flex items-center gap-3">
           <span className="text-4xl sm:text-5xl font-black leading-none">{sd}</span>
           <div className="text-xs text-white/65 leading-snug">
@@ -314,7 +309,7 @@ const CalendarSection = ({ events }) => {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="relative flex flex-col gap-3"
           >
             {dayEvents.length ? (
@@ -413,7 +408,6 @@ const CalendarSection = ({ events }) => {
   );
 };
 
-// ── Carusel cu dimensiune strict fixă (nu se lărgește după poză sau text) ─────
 const SingleItemCarousel = ({ events, showButton = true }) => {
   const { t } = useTranslation();
   const [idx, setIdx] = useState(0);
@@ -452,15 +446,14 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
         onTouchMove={(e) => setTx1(e.targetTouches[0].clientX)}
         onTouchEnd={onEnd}
       >
-        {/* Partea Stângă: Text cu înălțime controlată */}
         <div className="w-full md:w-1/2 h-[330px] md:h-full p-7 sm:p-8 md:p-12 flex flex-col justify-between relative order-2 md:order-1 shrink-0 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={`t-${idx}`}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.28 }}
               className="flex flex-col justify-center flex-1 min-h-0 overflow-hidden"
             >
               <h3 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 tracking-tight leading-tight truncate">
@@ -483,14 +476,13 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigație carusel jos */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-rose-950/40 shrink-0">
             <div className="flex items-center gap-2">
               {events.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setIdx(i)}
-                  className={`transition-all duration-500 h-1.5 rounded-full cursor-pointer ${
+                  className={`transition-all duration-300 h-1.5 rounded-full cursor-pointer ${
                     i === idx
                       ? "bg-[#4F0028] dark:bg-rose-400 w-8"
                       : "bg-gray-200 dark:bg-rose-950 w-2 hover:bg-gray-300"
@@ -515,24 +507,28 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
           </div>
         </div>
 
-        {/* Partea Dreaptă: Container Imagine cu Box Fix */}
         <div className="w-full h-[230px] md:h-full md:w-1/2 shrink-0 bg-gradient-to-br from-[#4F0028] to-[#320606] dark:from-[#320606] dark:to-[#140202] p-8 flex items-center justify-center relative overflow-hidden order-1 md:order-2">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)",
+            }}
+          />
           <AnimatePresence mode="wait">
             <motion.div
               key={`i-${idx}`}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.3 }}
               className="relative z-10 w-[220px] h-[150px] md:w-[280px] md:h-[220px] flex justify-center items-center"
             >
-              <motion.img
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              <img
                 src={ev.image}
                 alt={t(ev.titleKey)}
-                className="w-full h-full object-contain drop-shadow-2xl"
+                decoding="async"
+                className="w-full h-full object-contain drop-shadow-2xl animate-float-y"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
@@ -545,14 +541,12 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
   );
 };
 
-// ── Cardul Unificat pentru Cursuri Internaționale (Study & Travel) ───────────
 const InternationalStudyCard = () => {
   const { t } = useTranslation();
 
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div className="bg-white dark:bg-[#1e0404] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden flex flex-col md:flex-row min-h-[440px] transition-colors duration-300">
-        {/* Stânga: Informații + Pilonii (Aplicații în Europa vs Cursul de Vară din Brașov) */}
         <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-between">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4F0028]/10 dark:bg-rose-500/15 text-[#4F0028] dark:text-rose-300 text-xs font-bold uppercase tracking-wider mb-4">
@@ -568,7 +562,6 @@ const InternationalStudyCard = () => {
               {t("eventsPage.international.cardDesc")}
             </p>
 
-            {/* Cele 2 direcții: Plecări în afară + Cursul organizat la Brașov vara */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-8">
               <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#140202] border border-gray-100 dark:border-rose-950/60">
                 <div className="flex items-center gap-2 text-[#4F0028] dark:text-rose-400 font-bold text-sm mb-1">
@@ -608,10 +601,14 @@ const InternationalStudyCard = () => {
           </div>
         </div>
 
-        {/* Dreapta: Panou Vizual Study & Travel */}
         <div className="w-full md:w-5/12 bg-gradient-to-br from-[#4F0028] via-[#320606] to-[#140202] p-8 md:p-10 flex flex-col justify-between text-white relative overflow-hidden">
-          <div className="absolute -top-16 -right-16 w-64 h-64 bg-rose-400/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(251,113,133,0.2) 0%, transparent 70%)",
+            }}
+          />
 
           <div className="relative z-10 flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/80">
@@ -661,7 +658,6 @@ const InternationalStudyCard = () => {
   );
 };
 
-// ── Pagina Principală Events ─────────────────────────────────────────────────
 const Events = () => {
   const { t, i18n } = useTranslation();
 
@@ -679,15 +675,21 @@ const Events = () => {
   );
 
   return (
-    <div className="pt-32 pb-24 min-h-screen bg-gray-50/50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300">
+    <div className="pt-24 lg:pt-32 pb-24 min-h-screen bg-gray-50/50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1e0303] dark:to-[#110101] transition-colors duration-300 overflow-x-clip">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="absolute top-0 right-10 w-96 h-96 bg-[#4F0028]/10 rounded-full blur-[100px] pointer-events-none" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 right-10 w-96 h-96 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(79,0,40,0.12) 0%, transparent 70%)",
+          }}
+        />
 
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
           <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.08 }}
             className="text-4xl font-black text-gray-900 dark:text-white sm:text-5xl md:text-6xl mb-6 tracking-tight"
           >
             {t("eventsPage.header.titleStart")}
@@ -696,24 +698,22 @@ const Events = () => {
             </span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.16 }}
             className="text-lg text-gray-600 dark:text-gray-300"
           >
             {t("eventsPage.header.subtitle")}
           </motion.p>
         </div>
 
-        {/* 0. Calendarul complet */}
         <CalendarSection events={allEvents} />
 
-        {/* 1. Evenimente Publice */}
         <motion.section
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-32"
+          className="mb-28 sm:mb-32"
         >
           <SectionHeader
             icon={Globe}
@@ -723,12 +723,11 @@ const Events = () => {
           <SingleItemCarousel events={externalEvents} showButton={true} />
         </motion.section>
 
-        {/* 2. Evenimente Interne */}
         <motion.section
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-32"
+          className="mb-28 sm:mb-32"
         >
           <SectionHeader
             icon={Users}
@@ -738,9 +737,8 @@ const Events = () => {
           <SingleItemCarousel events={internalEvents} showButton={false} />
         </motion.section>
 
-        {/* 3. Ultimul Card: Oportunități Internaționale (Study & Travel) */}
         <motion.section
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >

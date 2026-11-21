@@ -17,7 +17,7 @@ const Home = () => {
     <div className="relative bg-gray-50 dark:bg-gradient-to-b dark:from-[#320606] dark:via-[#1c0303] dark:to-[#140202] transition-colors duration-300 overflow-x-clip">
       <Hero />
 
-      {/* Un singur grid continuu sub Hero, cu fade lin sus ca să nu se taie brusc */}
+      {/* Un singur grid continuu sub Hero, cu fade lin sus */}
       <div className="relative">
         <div
           aria-hidden="true"

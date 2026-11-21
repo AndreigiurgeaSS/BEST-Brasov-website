@@ -3,7 +3,7 @@ import { BookOpen, Briefcase, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const PushPin = () => (
-  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center drop-shadow-md pointer-events-none">
+  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center pointer-events-none">
     <div className="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-[#4F0028] border-b-2 border-[#320606] relative z-10 shadow-sm">
       <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/60 rounded-full" />
     </div>
@@ -32,7 +32,7 @@ const WhatWeDo = () => {
   return (
     <section
       id="what-we-do"
-      className="scroll-mt-24 py-20 sm:py-28 bg-transparent relative"
+      className="scroll-mt-20 lg:scroll-mt-24 py-20 sm:py-28 bg-transparent relative"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
@@ -69,25 +69,24 @@ const WhatWeDo = () => {
           {pillars.map((pillar, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{
                 opacity: 1,
-                y: index === 1 ? 12 : 0,
+                y: index === 1 ? 10 : 0,
                 rotate: pillar.tilt,
               }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{
                 duration: 0.45,
-                delay: index * 0.1,
+                delay: index * 0.08,
                 ease: [0.22, 1, 0.36, 1],
               }}
               whileHover={{
                 y: -6,
                 rotate: 0,
                 scale: 1.02,
-                transition: { duration: 0.22, ease: "easeOut" },
+                transition: { duration: 0.2, ease: "easeOut" },
               }}
-              style={{ willChange: "transform, opacity" }}
               className="relative h-full bg-white dark:bg-[#1e0404] rounded-2xl p-7 sm:p-9 border border-gray-200/90 dark:border-rose-950/60 shadow-lg hover:shadow-2xl dark:shadow-black/40 flex flex-col justify-start transform-gpu"
             >
               <PushPin />
@@ -111,4 +110,4 @@ const WhatWeDo = () => {
   );
 };
 
-export default WhatWeDo;  
+export default WhatWeDo;

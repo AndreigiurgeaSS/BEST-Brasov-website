@@ -20,50 +20,45 @@ const Hero = () => {
   return (
     <section
       id="home"
-      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center bg-transparent pt-24 pb-20 overflow-hidden"
+      className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center bg-transparent pt-20 lg:pt-24 pb-20 overflow-hidden"
     >
       {/* Architectural Grid cu Radial Mask */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 bg-[linear-gradient(to_right,#4F002810_1px,transparent_1px),linear-gradient(to_bottom,#4F002810_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff07_1px,transparent_1px),linear-gradient(to_bottom,#ffffff07_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_75%_65%_at_50%_45%,#000_60%,transparent_100%)] pointer-events-none"
       />
 
-      {/* Animated Technical Orbital Rings in Background */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.22, 0.35, 0.22] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute w-[340px] h-[340px] sm:w-[580px] sm:h-[580px] rounded-full bg-gradient-to-tr from-[#4F0028]/25 via-[#8b1832]/15 to-transparent dark:from-[#4F0028]/50 dark:via-[#6e0d25]/25 dark:to-transparent blur-3xl"
+      {/* Orbital Rings pur CSS (GPU-only, se opresc automat pe Eco Mode) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden"
+      >
+        {/* Glow radial lejer (înlocuiește blur-3xl animat care bloca mobilul) */}
+        <div
+          className="absolute w-[380px] h-[380px] sm:w-[640px] sm:h-[640px] rounded-full opacity-80 dark:opacity-100"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(79, 0, 40, 0.28) 0%, rgba(139, 24, 50, 0.1) 42%, transparent 70%)",
+          }}
         />
 
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[480px] h-[480px] sm:w-[760px] sm:h-[760px] rounded-full border border-[#4F0028]/10 dark:border-white/[0.06]"
-        >
-          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028]/40 dark:bg-rose-400/50 shadow-[0_0_12px_#4F0028]" />
+        <div className="animate-spin-70s absolute w-[480px] h-[480px] sm:w-[760px] sm:h-[760px] rounded-full border border-[#4F0028]/10 dark:border-white/[0.06] will-change-transform">
+          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-[#4F0028]/45 dark:bg-rose-400/55" />
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#4F0028]/25 dark:bg-white/30" />
-        </motion.div>
+        </div>
 
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[350px] h-[350px] sm:w-[560px] sm:h-[560px] rounded-full border border-dashed border-[#4F0028]/15 dark:border-rose-300/10"
-        />
+        <div className="animate-spin-50s-rev absolute w-[350px] h-[350px] sm:w-[560px] sm:h-[560px] rounded-full border border-dashed border-[#4F0028]/15 dark:border-rose-300/10 will-change-transform" />
 
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[240px] h-[240px] sm:w-[390px] sm:h-[390px] rounded-full border border-[#4F0028]/10 dark:border-white/[0.04]"
-        />
+        <div className="animate-spin-35s absolute w-[240px] h-[240px] sm:w-[390px] sm:h-[390px] rounded-full border border-[#4F0028]/10 dark:border-white/[0.04] will-change-transform" />
       </div>
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full my-auto">
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl sm:text-7xl md:text-8xl font-black text-gray-900 dark:text-white tracking-tight leading-none transition-colors duration-300"
+          transition={{ duration: 0.5, delay: 0.08 }}
+          className="text-5xl sm:text-7xl md:text-8xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.12] pb-1 transition-colors duration-300"
         >
           {t("hero.titleStart")}{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F0028] via-[#7a0b3b] to-[#a11d3a] dark:from-rose-200 dark:via-rose-400 dark:to-[#c83e5b]">
@@ -71,19 +66,20 @@ const Hero = () => {
           </span>
         </motion.h1>
 
+        {/* Spațiu mărit (mt-6) ca „Ș”-ul din Brașov să nu intre peste subtitlu */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg sm:text-2xl text-[#4F0028] dark:text-rose-200/90 font-bold mt-4 tracking-wide transition-colors duration-300"
+          transition={{ duration: 0.5, delay: 0.16 }}
+          className="text-lg sm:text-2xl text-[#4F0028] dark:text-rose-200/90 font-bold mt-6 tracking-wide transition-colors duration-300"
         >
           {t("hero.subtitle")}
         </motion.p>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.24 }}
           className="mt-4 sm:mt-5 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-sm sm:text-lg leading-relaxed transition-colors duration-300"
         >
           {t("hero.description")}
@@ -91,9 +87,9 @@ const Hero = () => {
 
         {/* Action Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.32 }}
           className="mt-8 flex flex-col sm:flex-row gap-3.5 justify-center items-center"
         >
           <Link
@@ -105,7 +101,7 @@ const Hero = () => {
           </Link>
           <Link
             to="/join#contact"
-            className="w-full sm:w-auto bg-white/90 dark:bg-[#1a0303]/80 backdrop-blur-md border border-gray-200 dark:border-white/15 text-gray-800 dark:text-gray-100 font-bold px-8 py-3.5 rounded-full hover:border-[#4F0028]/40 dark:hover:bg-[#2a0606] transition-all text-center shadow-sm hover:-translate-y-0.5"
+            className="w-full sm:w-auto bg-white/95 dark:bg-[#1a0303]/90 lg:backdrop-blur-md border border-gray-200 dark:border-white/15 text-gray-800 dark:text-gray-100 font-bold px-8 py-3.5 rounded-full hover:border-[#4F0028]/40 dark:hover:bg-[#2a0606] transition-all text-center shadow-sm hover:-translate-y-0.5"
           >
             {t("hero.contactBtn")}
           </Link>
@@ -113,9 +109,9 @@ const Hero = () => {
 
         {/* Key Figures Bar */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-10 pt-6 border-t border-gray-200/80 dark:border-white/10 max-w-lg mx-auto grid grid-cols-3 gap-4"
         >
           <div>
@@ -139,24 +135,22 @@ const Hero = () => {
         </motion.div>
       </div>
 
-      {/* Scroll Down Indicator */}
-      <motion.div
+      {/* Scroll Down Indicator (CSS animation GPU-only) */}
+      <motion.button
+        type="button"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.8 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
         onClick={handleScrollDown}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center cursor-pointer group z-20"
       >
         <span className="text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase text-gray-500 dark:text-gray-300 mb-1 group-hover:text-[#4F0028] dark:group-hover:text-rose-300 transition-colors">
           {t("hero.scrollDown")}
         </span>
-        <motion.div
-          animate={{ y: [0, 7, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-        >
+        <span className="animate-float-y inline-block">
           <ChevronsDown className="w-5 h-5 sm:w-6 sm:h-6 text-[#4F0028] dark:text-rose-300 transition-colors" />
-        </motion.div>
-      </motion.div>
+        </span>
+      </motion.button>
     </section>
   );
 };

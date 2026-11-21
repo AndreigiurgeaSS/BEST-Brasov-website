@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { siteConfig } from "../config/siteConfig";
 
 // ── Interactive Glass Contact Pill ────────────────────────────────────────────
 const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
@@ -46,7 +47,7 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   );
 };
 
-// ── Design "E - Split-Track" + Preview dinamic în interiorul arcului ─────────
+// ── ArcWheel Navigation ───────────────────────────────────────────────────────
 const ARC_CX    = 24;
 const ARC_CY    = 125;
 const ARC_R     = 146;
@@ -161,9 +162,9 @@ const ArcWheel = () => {
     [pages]
   );
 
-  const [activeIdx, setActiveIdx]     = useState(() => getIndexFromPath(location.pathname));
-  const [wheelStep, setWheelStep]     = useState(0);
-  const [hoveredIdx, setHoveredIdx]   = useState(null);
+  const [activeIdx, setActiveIdx]   = useState(() => getIndexFromPath(location.pathname));
+  const [wheelStep, setWheelStep]   = useState(0);
+  const [hoveredIdx, setHoveredIdx] = useState(null);
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [countdown, setCountdown] = useState({
@@ -379,7 +380,6 @@ const ArcWheel = () => {
             <rect x="-40" y="0" width="300" height="250" fill="url(#wheelFadeMaskGrad)" />
           </mask>
 
-          {/* Gradient pentru linia fină dintre descrierea din interior și arc */}
           <linearGradient id="innerConnectorGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
             <stop
@@ -413,7 +413,6 @@ const ArcWheel = () => {
           </motion.g>
         </g>
 
-        {/* Linia fină care leagă preview-ul din interiorul arcului de segmentul activ */}
         <line
           x1={arcApexX - 28}
           y1={ARC_CY}
@@ -431,7 +430,6 @@ const ArcWheel = () => {
           opacity={countdown.active || isNavigating ? 0.95 : 0.65}
         />
 
-        {/* TIMER-UL LUMINOS: Se umple exact pe segmentul central */}
         {(countdown.active || isNavigating) && displayFill > 0 && (
           <path
             d={describeArc(ARC_CX, ARC_CY, ARC_R, -10.5 * displayFill, 10.5 * displayFill)}
@@ -439,11 +437,9 @@ const ArcWheel = () => {
             strokeWidth="4.5"
             fill="none"
             strokeLinecap="round"
-            style={{ filter: "drop-shadow(0 0 6px rgba(255,255,255,0.8))" }}
           />
         )}
 
-        {/* EFECT DE WARP / FLASH la final */}
         <AnimatePresence>
           {isNavigating && (
             <motion.path
@@ -454,13 +450,13 @@ const ArcWheel = () => {
               stroke="#ffffff"
               fill="none"
               strokeLinecap="round"
-              style={{ transformOrigin: `${ARC_CX}px ${ARC_CY}px`, filter: "blur(1px)" }}
+              style={{ transformOrigin: `${ARC_CX}px ${ARC_CY}px` }}
             />
           )}
         </AnimatePresence>
       </svg>
 
-      {/* PREVIEW DINAMIC ÎN INTERIORUL ARCULUI (se schimbă odată cu roata) */}
+      {/* Preview dinamic în interiorul arcului */}
       <div
         className="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 pr-2 text-right"
         style={{ width: `${arcApexX - 34}px` }}
@@ -484,7 +480,7 @@ const ArcWheel = () => {
         </AnimatePresence>
       </div>
 
-      {/* TEXTELE PAGINILOR (aliniate perfect vertical cu Flexbox) */}
+      {/* Textele paginilor */}
       {visibleOffsets.map((offset) => {
         const idx       = mod(activeIdx + offset, N);
         const pos       = getPos(offset);
@@ -496,15 +492,7 @@ const ArcWheel = () => {
         const opacity    = isCenter ? 1 : isHovered ? 1 : absOffset === 1 ? 0.78 : absOffset === 2 ? 0.5 : 0.25;
         const fontSize   = isCenter ? 17.5 : absOffset === 1 ? 14 : absOffset === 2 ? 12.5 : 11;
         const fontWeight = isCenter || isHovered ? 800 : 500;
-
-        const xPadding = 12;
-
-        const textGlow =
-          isCenter && isNavigating
-            ? "0 0 15px rgba(255,255,255,0.9), 0 0 25px rgba(251,113,133,0.8)"
-            : isCenter && fillAmount > 0.85
-            ? "0 0 10px rgba(255,255,255,0.5)"
-            : "none";
+        const xPadding   = 12;
 
         const textScale = isNavigating && isCenter ? 1.15 : isCenter ? 1.05 : isHovered ? 1.03 : 1;
 
@@ -544,7 +532,6 @@ const ArcWheel = () => {
               fontSize:        `${fontSize}px`,
               fontWeight,
               color:           isCenter && isNavigating ? "#ffffff" : isCenter && countdown.active ? "#fecdd3" : "#ffffff",
-              textShadow:      textGlow,
               whiteSpace:      "nowrap",
               cursor:          "pointer",
               letterSpacing:   "0.02em",
@@ -552,7 +539,7 @@ const ArcWheel = () => {
               padding:         "6px",
               userSelect:      "none",
               touchAction:     "none",
-              willChange:      "left, top, opacity, transform, text-shadow",
+              willChange:      "transform, opacity",
             }}
           >
             <motion.span
@@ -626,33 +613,32 @@ const Footer = () => {
 
   return (
     <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#2a0015] dark:from-[#240404] dark:to-[#0c0101] text-gray-200 pt-14 pb-8 border-t border-white/10 dark:border-rose-950/50 transition-colors duration-300">
-      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-rose-500/10 blur-3xl rounded-full" />
-
-      {/* Watermark uriaș „BEST” în fundal, întins până în spațiul din fața Contacts */}
+      {/* Glow ușor pe GPU (radial-gradient în loc de blur-3xl) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none select-none absolute inset-x-0 bottom-28 sm:bottom-[78px] overflow-hidden z-0"
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[560px] h-[200px]"
+        style={{
+          background:
+            "radial-gradient(ellipse at top, rgba(244, 63, 94, 0.14) 0%, transparent 72%)",
+        }}
+      />
+
+      {/* Watermark „BEST” poziționat jos-centru/dreapta, departe de zona logo-ului (respectă clear space brandbook) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute inset-x-0 bottom-14 overflow-hidden z-0"
       >
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 flex justify-center lg:justify-start">
-          <span className="font-black uppercase leading-[0.78] tracking-[0.06em] lg:tracking-[0.22em] text-[34vw] sm:text-[26vw] lg:text-[250px] text-white/[0.04] dark:text-rose-200/[0.03]">
+        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 flex justify-center lg:justify-end">
+          <span className="font-black uppercase leading-[0.82] tracking-[0.14em] text-[22vw] sm:text-[18vw] lg:text-[165px] text-white/[0.035] dark:text-rose-200/[0.028]">
             BEST
           </span>
         </div>
       </div>
 
-      {/* Alternativă: dacă vrei logo-ul BEST Brașov ca watermark în spatele descrierii/roții, decomentează mai jos:
-      <img
-        src="/images/logos/logo-BestBV.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute -left-16 -bottom-16 w-[360px] sm:w-[440px] opacity-[0.04] grayscale brightness-200 z-0"
-      />
-      */}
-
       <div className="max-w-[1200px] mx-auto px-6 sm:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center pb-12">
-          {/* Stânga (Brand & Info) */}
-          <div className="lg:col-span-4 flex flex-col items-center lg:items-start gap-4">
+          {/* Stânga (Brand & Info — ridicat sus ca să aibă clear space total în jurul logo-ului) */}
+          <div className="lg:col-span-4 lg:self-start lg:pt-2 flex flex-col items-center lg:items-start gap-4">
             <Link
               to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -661,6 +647,8 @@ const Footer = () => {
               <img
                 src="/images/logos/logo-BestBV.png"
                 alt="BEST Brașov Logo"
+                loading="lazy"
+                decoding="async"
                 className="h-16 sm:h-20 w-auto hover:scale-105 transition-transform duration-300"
               />
             </Link>
@@ -675,7 +663,7 @@ const Footer = () => {
             <ArcWheel />
           </div>
 
-          {/* Dreapta (Socials + Contacts) */}
+          {/* Dreapta (Socials + Contacts din siteConfig) */}
           <div className="lg:col-span-4 flex flex-col items-center lg:items-end gap-5 w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto">
             <div className="flex flex-col items-center gap-2.5 w-full">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
@@ -703,15 +691,15 @@ const Footer = () => {
               </p>
               <CopyableContact
                 label="Email"
-                value="bv-board@BEST-eu.org"
-                displayValue="bv-board@BEST-eu.org"
+                value={siteConfig.contact.email}
+                displayValue={siteConfig.contact.email}
                 Icon={Mail}
                 copiedText={t("footer.copied")}
               />
               <CopyableContact
                 label="Phone"
-                value="+40730827778"
-                displayValue="+40 730 827 778"
+                value={siteConfig.contact.phone}
+                displayValue={siteConfig.contact.phoneDisplay}
                 Icon={Phone}
                 copiedText={t("footer.copied")}
               />
@@ -724,18 +712,12 @@ const Footer = () => {
           <p>{t("footer.rights").replace("{{year}}", year)}</p>
           <p className="flex items-center gap-1.5">
             {t("footer.madeWith")}{" "}
-            <motion.span
-              animate={{ scale: [1, 1.28, 1, 1.18, 1] }}
-              transition={{
-                duration: 1.4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="inline-block text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.75)] select-none"
+            <span
+              className="inline-block text-red-500 animate-heartbeat select-none"
               aria-label="love"
             >
               ❤️
-            </motion.span>{" "}
+            </span>{" "}
             <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>
