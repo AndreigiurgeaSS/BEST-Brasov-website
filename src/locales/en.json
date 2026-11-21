@@ -1,6 +1,6 @@
 {
   "_GUIDE_INFO": "================ ENGLISH TRANSLATIONS GUIDE FOR NEXT IT COORDINATORS ================",
-  "_GUIDE_PHONES": "Note: To update phone numbers or emails, check Footer.jsx, Management.jsx, and JoinUs.jsx.",
+  "_GUIDE_CONFIG": "Note: To update recruitment status, phone number, email, or Google Forms links, edit src/config/siteConfig.js. For Board & Coordinators, edit src/data/managementData.js.",
 
   "_SECTION_1": "---------------- 1. NAVBAR & FOOTER ----------------",
   "nav": {
@@ -13,22 +13,32 @@
     "join": "Join Us!"
   },
   "footer": {
-    "description": "Developing students since 1997. Empowering the next generation of engineers, leaders, and innovators at Transilvania University.",
+    "description": "Developing students since 1997. Supporting the next generation of engineers, leaders, and innovators at Transilvania University.",
     "followUs": "Follow Us",
     "contacts": "Contacts",
     "copied": "Copied!",
     "rights": "BEST Brașov © {{year}}. All rights reserved.",
     "madeWith": "Made with",
-    "byItDept": "by the IT Department"
+    "byItDept": "by the IT Department",
+    "wheelHints": {
+      "home": "Our story, mission, and core values.",
+      "events": "Calendar, competitions, and European courses.",
+      "departments": "HR, Fundraising, Marketing, and IT.",
+      "management": "Local Board and department coordinators.",
+      "partners": "Companies and institutions supporting us.",
+      "faq": "Quick answers about joining BEST.",
+      "join": "Recruitments, benefits, and direct contact."
+    }
   },
 
   "_SECTION_2": "---------------- 2. HOME PAGE (HERO, WHAT IS BEST, WHAT WE DO, VALUES) ----------------",
   "hero": {
+    "pageTitle": "BEST Brașov",
     "tag": "Board of European Students of Technology",
     "titleStart": "BEST",
     "titleHighlight": "Brașov",
     "subtitle": "Developing students since 1997.",
-    "description": "BEST Brașov is a non-governmental organization established in 1997 for students at Transilvania University. We bridge the gap between academia, students, and industry while fostering both professional and personal growth.",
+    "description": "BEST Brașov is a non-governmental student organization founded in 1997 at Transilvania University. We connect students, the university, and companies while creating real opportunities for personal and professional growth.",
     "exploreBtn": "Explore Events",
     "contactBtn": "Contact Us",
     "scrollDown": "Scroll Down",
@@ -44,42 +54,41 @@
     "local": {
       "year": "1997",
       "heading": "Our local story in Brașov.",
-      "p1": "Founded in 1997 as the local BEST group at Transilvania University, BEST Brașov bridges the gap between students, academia, and the corporate world. Our focus is the professional and personal development of every member.",
-      "p2": "We organize tailored events—workshops, academic courses, and company presentations—designed to meet the real-world needs of students.",
-      "p3": "Beyond academics, we build a tightly-knit community through dynamic social activities and teambuildings."
+      "p1": "Founded in 1997 as the local BEST group at Transilvania University, BEST Brașov connects students with both the academic world and top companies. Our main focus is the personal and professional growth of every member.",
+      "p2": "We organize workshops, academic courses, and company presentations built around what students actually need to learn outside the classroom.",
+      "p3": "Beyond the technical side, we build a close-knit community through social nights, trips, and teambuildings."
     },
     "international": {
       "year": "1989",
       "heading": "Part of a European network since 1989.",
-      "p1": "At an international level, BEST (Board of European Students of Technology) was founded in 1989 and operates across 85 universities in 30 countries, connecting tech-passionate students across Europe.",
-      "p2": "Through our vast network, we facilitate academic exchanges, seasonal courses, and unique networking opportunities with top professionals.",
-      "p3": "We drive innovation by organizing technical competitions, trainings, and workshops spanning engineering, IT, robotics, and design.",
+      "p1": "At an international level, BEST (Board of European Students of Technology) was founded in 1989 and is active in 85 universities across 30 countries, bringing together tech students from all over Europe.",
+      "p2": "Through this network, we give students access to academic exchanges, seasonal courses abroad, and direct networking with industry professionals.",
+      "p3": "We encourage practical learning through technical competitions, trainings, and workshops in engineering, IT, robotics, and design.",
       "visitBtn": "Visit best.eu.org"
     }
   },
   "whatWeDo": {
     "title": "What do we do?",
-    "subtitle": "Empowering students through three core initiatives.",
+    "subtitle": "Supporting students through three main pillars.",
     "pillars": [
       {
         "title": "Complementary Education",
-        "description": "We offer excellent opportunities for further education in an international environment. Our seasonal courses allow students to deepen their knowledge while working in interdisciplinary teams."
+        "description": "We give students the chance to keep learning in an international setting. Our seasonal courses help participants deepen their technical knowledge while working in multicultural teams."
       },
       {
         "title": "Career Support",
-        "description": "We provide valuable career development support. Through events like BEST Company Day, we connect students directly with top companies to showcase opportunities and kickstart careers."
+        "description": "We help students take their first real steps toward a career. Through events like BEST Company Day, we bring them face to face with top employers to discover internships and job openings."
       },
       {
         "title": "Educational Involvement",
-        "description": "We are actively involved in education through technical competitions, hackathons, and hands-on workshops. We encourage students to apply their skills in competitive environments, fostering critical thinking and teamwork."
+        "description": "We get actively involved in student education through technical competitions, hackathons, and hands-on workshops, encouraging students to put their skills to the test and work as a team."
       }
     ]
   },
-
   "visionMission": {
     "titleStart": "Why are we",
     "titleHighlight": "here?",
-    "subtitle": "Two guiding principles shape everything we do: building a diverse, inclusive community and helping students grow into their fullest potential.",
+    "subtitle": "Two core principles guide everything we do: building an open, diverse community and helping students reach their full potential.",
     "vision": {
       "label": "Our Vision",
       "title": "Empowered Diversity",
@@ -91,30 +100,29 @@
       "desc": "BEST helps students to achieve an international mindset, to reach a better understanding of cultures and societies and to develop the capacity to work in culturally diverse environments. BEST creates opportunities for personal development of students and supports them in reaching their full potential."
     }
   },
-
   "coreValues": {
     "titleHighlight": "BEST",
     "titleEnd": "VALUES",
     "items": [
       {
         "title": "FUN",
-        "desc": "We love what we do, and we want everyone who participates in our activities and events to feel the same."
+        "desc": "We love what we do, and we want everyone who joins our activities and events to feel the exact same way."
       },
       {
         "title": "FRIENDSHIP",
-        "desc": "We build lasting relationships, standing by each other through good times and bad times."
+        "desc": "We build lasting friendships and stand by each other through both the good moments and the tough ones."
       },
       {
         "title": "FLEXIBILITY",
-        "desc": "We are open to new ideas. Whatever happens, we seek solutions to adapt."
+        "desc": "We stay open to new ideas. No matter what comes up, we adapt and find a way forward."
       },
       {
         "title": "OPEN MINDEDNESS",
-        "desc": "We aim to improve ourselves every day. If we become better, then those around us also evolve."
+        "desc": "We aim to grow every single day. When we become better versions of ourselves, everyone around us grows too."
       },
       {
         "title": "IMPROVEMENT",
-        "desc": "We learn from every experience, event, or even a simple conversation with another BEST member."
+        "desc": "We learn from every project, every event, and even a simple coffee chat with another BEST member."
       }
     ]
   },
@@ -124,34 +132,34 @@
     "pageTitle": "Departments | BEST Brașov",
     "titleStart": "Our",
     "titleHighlight": "Departments",
-    "subtitle": "Discover our departments and find the one that sparks your passion. Click on any card to see what happens behind the scenes!",
+    "subtitle": "Explore our four departments and see which one fits you best. Tap any card to see what happens behind the scenes!",
     "imagePlaceholder": "Image",
     "clickToFlip": "Click to flip",
-    "whatWeDo": "What we do?",
+    "whatWeDo": "What do we do?",
     "items": [
       {
         "name": "Human Resources",
         "short": "HR",
-        "motto": "Are you communicative, sociable, empathetic, and organized? Do you enjoy working with people and supporting them? Then you have the qualities needed to be part of the Human Resources department.",
-        "desc": "This department takes care of the organization's members: from outings, parties, and teambuildings, to training and other activities that develop you. In addition, they are also in charge of constantly evaluating what we do, so that we can constantly improve our work."
+        "motto": "Are you communicative, sociable, empathetic, and organized? Do you enjoy working with people and supporting them? Then Human Resources might be your place.",
+        "desc": "This department takes care of our members: from outings, parties, and teambuildings to internal trainings and personal development activities. They also evaluate how our projects go so we can keep getting better."
       },
       {
         "name": "Fundraising",
         "short": "FR",
-        "motto": "Do you enjoy meeting new people, negotiating, and finding opportunities for project development? If you are communicative, organized, and result-oriented, then the Fundraising department is the right fit for you.",
-        "desc": "Those involved in this department ensure that we have the material and financial means to carry out our projects. They contact and negotiate with companies to convince them to sponsor our events or offer us prizes and discounts for participants."
+        "motto": "Do you like meeting new people, negotiating, and finding resources to bring projects to life? If you are communicative, organized, and results-driven, Fundraising is a great fit.",
+        "desc": "Fundraising makes sure we have the financial and material support needed to run our events. Members reach out to companies, build partnerships, and negotiate sponsorships, prizes, and student discounts."
       },
       {
         "name": "Marketing",
         "short": "MKT",
-        "motto": "Are you a creative, communicative, and organized person full of ideas? Do you enjoy creating content and capturing people's attention? Then you have the qualities needed to join the Marketing department.",
-        "desc": "The members of this department are in charge of the organization's external image, from poster design, to promotional materials, articles, social media presence and podcasts, to maintaining relationships with stakeholders (the University, partners and students)."
+        "motto": "Are you creative, communicative, and always full of ideas? Do you enjoy making visual content and grabbing people's attention? Then the Marketing department is waiting for you.",
+        "desc": "Marketing shapes the public image of BEST Brașov: poster design, promotional materials, articles, social media, and podcasts, while keeping strong communication with the University, partners, and students."
       },
       {
         "name": "Information Technology",
         "short": "IT",
-        "motto": "Are you passionate about programming, web development, and technology? Do you enjoy creating websites, writing code, and finding solutions to technical problems? Then you have the qualities needed to join the IT department.",
-        "desc": "Here you have the opportunity to learn how to create a website and how to take into account all the details related to the resources with which an event is organized. You can also develop yourself in the robotics area, working on interesting projects alongside the other members of the department!"
+        "motto": "Are you passionate about coding, web development, and tech? Do you enjoy building websites and solving technical puzzles? Then you will feel right at home in IT.",
+        "desc": "Here you get hands-on experience building websites and managing the technical setup behind our events. You can also explore robotics and work on practical tech projects together with the team."
       }
     ]
   },
@@ -161,7 +169,7 @@
     "pageTitle": "Management | BEST Brașov",
     "titleStart": "Meet the",
     "titleHighlight": "Team",
-    "subtitle": "The dedicated students working behind the scenes to make the magic happen.",
+    "subtitle": "The students working behind the scenes to turn every project into reality.",
     "boardTitle": "Local Board of Management",
     "coordinatorsTitle": "Department Coordinators",
     "roles": {
@@ -180,7 +188,7 @@
     "pageTitle": "Partners | BEST Brașov",
     "titleStart": "Our",
     "titleHighlight": "Partners",
-    "subtitle": "We thank the companies and institutions that support us in the development of students and the community.",
+    "subtitle": "We thank the companies and institutions that support us in developing students and our local community.",
     "moreInfo": "More Info",
     "visitSiteTitle": "Visit {{name}} website",
     "sections": {
@@ -193,7 +201,7 @@
     "cta": {
       "titleStart": "Want to become a",
       "titleHighlight": "partner?",
-      "description": "Gain visibility among top engineering students and help us create high-impact educational events. Let's discuss how we can collaborate.",
+      "description": "Connect with motivated engineering students and help us organize impactful educational events. Let's talk about how we can work together.",
       "button": "Get in touch"
     }
   },
@@ -203,12 +211,12 @@
     "pageTitle": "FAQ | BEST Brașov",
     "titleStart": "Frequently Asked",
     "titleHighlight": "Questions",
-    "subtitle": "Everything you need to know about joining our local group, traveling across Europe, and developing yourself.",
+    "subtitle": "Everything you need to know about joining our local group, traveling across Europe, and growing as a student.",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "cta": {
       "title": "Still have questions?",
-      "subtitle": "Can't find the answer you're looking for? Submit your question via our form or drop us a DM!",
+      "subtitle": "Didn't find the answer you were looking for? Send us your question through the form or drop us a DM!",
       "formBtn": "Ask via Form",
       "instaBtn": "DM on Instagram"
     },
@@ -219,23 +227,23 @@
     "items": [
       {
         "question": "What is BEST Brașov?",
-        "answer": "BEST (Board of European Students of Technology) is a non-profit, non-political organization. We help students develop their skills, travel, and connect with companies across Europe."
+        "answer": "BEST (Board of European Students of Technology) is a non-profit, non-political student organization. We help students build practical skills, travel across Europe, and connect with companies."
       },
       {
         "question": "Who can join the organization?",
-        "answer": "Any student currently enrolled at Transilvania University of Brașov can apply during our recruitment periods (usually in Autumn and Spring)."
+        "answer": "Any student currently enrolled at Transilvania University of Brașov can apply during our recruitment periods, which usually take place in Autumn and Spring."
       },
       {
         "question": "Are the courses and travels really free?",
-        "answer": "Mostly, yes! For BEST courses, accommodation, food, and the academic program are covered by the host local group. You usually only pay a small fee and your travel expenses."
+        "answer": "Mostly, yes! For BEST courses, accommodation, meals, and the academic program are covered by the host local group. You usually only cover a small participation fee and your travel."
       },
       {
-        "question": "Do I need to be an IT/Computer Science student?",
-        "answer": "Absolutely not! While we focus on technology, our members come from all faculties. We need people skilled in HR, PR, Design, Marketing, Logistics, and more."
+        "question": "Do I need to be an IT or Computer Science student?",
+        "answer": "Not at all! Even though we focus on technology, our members come from all faculties. We always need people interested in HR, PR, Design, Marketing, Fundraising, and Logistics."
       },
       {
         "question": "How much time does it take to be a member?",
-        "answer": "It's entirely up to you. You can dedicate a few hours a week or get heavily involved in organizing massive events. Flexibility is key, as we are all full-time students."
+        "answer": "It's completely up to you. You can spend a few hours a week or jump into organizing large events. We are all full-time students, so flexibility always comes first."
       }
     ]
   },
@@ -246,12 +254,12 @@
     "header": {
       "titleStart": "Explore Our ",
       "titleHighlight": "Events",
-      "subtitle": "We organize events to build bridges between students, universities, and companies. Discover what's coming up next!"
+      "subtitle": "We organize events that bring students, universities, and companies closer together. See what is coming up next!"
     },
     "calendar": {
       "title": "Event Calendar",
       "moreInfo": "More info",
-      "nothingPlanned": "No events scheduled on this date. Select another day or jump directly to our next upcoming activity.",
+      "nothingPlanned": "No events scheduled for this day. Pick another date or jump straight to our next activity.",
       "next": "Next event",
       "upcoming": "Upcoming Events",
       "legend": {
@@ -267,26 +275,26 @@
     },
     "publicEvents": {
       "title": "Public Events",
-      "subtitle": "Open to all students across Transilvania University."
+      "subtitle": "Open to all students at Transilvania University."
     },
     "internalEvents": {
       "title": "Internal Events",
-      "subtitle": "Exclusive activities and trainings for active BEST members."
+      "subtitle": "Dedicated activities and trainings for active BEST members."
     },
     "international": {
       "title": "International Courses",
       "subtitle": "Study, travel, and experience engineering across Europe alongside students from 30 countries.",
       "badge": "Study & Travel with BEST",
       "cardTitle": "Seasonal Courses Across Europe",
-      "cardDesc": "Every season, students from Transilvania University can apply to academic and cultural courses hosted by other BEST local groups across Europe, while each summer we host international students right here in Brașov.",
+      "cardDesc": "Every season, students from Transilvania University can apply to academic and cultural courses hosted by other BEST local groups across Europe, while each summer we welcome international students right here in Brașov.",
       "abroadTitle": "Outgoing Offers (Europe)",
       "abroadDesc": "Apply in Autumn, Spring, and Summer to travel abroad. Accommodation, meals, and academic sessions are covered.",
       "localSummerTitle": "Brașov Summer Course",
-      "localSummerDesc": "Our local edition organized every summer in Brașov for 20–30 international technology students.",
+      "localSummerDesc": "Our local edition organized every summer in Brașov for 20 to 30 international technology students.",
       "ctaBtn": "Explore Available Courses",
       "locationsTag": "Universities",
       "portalLabel": "Dedicated Platform",
-      "portalHighlight": "Check out the active destinations, application guide, and seasonal deadlines on our dedicated courses portal.",
+      "portalHighlight": "Check out active destinations, the application guide, and seasonal deadlines on our courses portal.",
       "statDays": "Days / Course",
       "statCountries": "Countries",
       "statMeals": "Lodging & Meals"
@@ -299,27 +307,27 @@
     "external": {
       "bit": {
         "title": "BIT",
-        "desc": "BEST Information Technology, an event now in its eighth edition, aims to develop a link between IT companies, the university environment and Brașov students, through dynamic activities, such as: company presentations, workshops, competitions and shows & tell."
+        "desc": "BEST Information Technology, now in its eighth edition, builds a strong link between IT companies, the university environment, and Brașov students through company presentations, workshops, competitions, and show & tell sessions."
       },
       "hackathon": {
         "title": "Hackathon",
-        "desc": "A Hackathon is a programming competition where participants use their skills and knowledge to solve a specific problem. In the winter of 2019, the first Hackathon organized by BEST Brașov took place, an event in which we put the students’ IT knowledge to the test in a 24-hour interval."
+        "desc": "A Hackathon is a programming competition where participants put their skills to work to solve a real challenge. In the winter of 2019, BEST Brașov hosted its first Hackathon, testing students' IT skills over an intense 24-hour sprint."
       },
       "btw": {
         "title": "BTW",
-        "desc": "BEST Training Week is an educational event organized by BEST Brasov for students from Transilvania University. The event consists of free training sessions, mostly focused on the soft skills side of the future graduates and is meant to help their personal development and training, in order to initiate them into a successful career path."
+        "desc": "BEST Training Week is an educational event for Transilvania University students. It offers free training sessions focused mainly on soft skills, helping future graduates grow personally and prepare for a strong career start."
       },
       "bcds": {
         "title": "BCDs",
-        "desc": "BEST Career Days is an event dedicated to Transilvania University students, an event in which you will have the opportunity to interact with employers and companies in order to develop your own knowledge, but you can also have the opportunity to get an internship or even a job, to take a step towards the career you want."
+        "desc": "BEST Career Days is dedicated to Transilvania University students who want to meet employers directly, learn from professionals, and take a real step toward an internship or their first job."
       },
       "bcd": {
         "title": "BCD",
-        "desc": "BEST Company Day is an event addressed to students from the Transilvania University of Brașov, being dedicated to opportunities to interact with specialists and employees in the technical field in order to develop their own knowledge. There is also the possibility of getting an internship or even a job."
+        "desc": "BEST Company Day gives students from Transilvania University of Brașov the chance to talk directly with specialists from the technical field, learn how companies work, and apply for internships or jobs."
       },
       "courses": {
         "title": "BEST Courses",
-        "desc": "During the year, BEST organizes various activities where students from technical universities have the opportunity to have an international experience, to make new friends and contacts, to improve their English and of course, to have fun. Each BEST event is attended by approximately 20-30 students who have one thing in common: they want to have a unique experience different from college life."
+        "desc": "Throughout the year, BEST organizes international courses where tech students travel, make friends from all over Europe, practice their English, and have fun. Each course gathers 20 to 30 students looking for a unique experience beyond regular college life."
       },
       "gala": {
         "title": "Anniversary Gala",
@@ -329,11 +337,11 @@
     "internal": {
       "mw": {
         "title": "Motivational Weekend",
-        "desc": "Motivational Weekend is a 3-day event meant to integrate new members of our organization. It is held twice a year, usually after the recruitment period. During this event, BEST Brașov’s members take part in different activities, such as trainings, traditions of our organization and so on and so forth."
+        "desc": "Motivational Weekend is a 3-day trip designed to welcome and integrate new members into our organization. It takes place twice a year right after recruitments, packed with trainings, team activities, and BEST traditions."
       },
       "ai": {
         "title": "Internal Anniversary",
-        "desc": "Internal Anniversary is an event where BEST Brașov’s members celebrate another year of organization’s existence. Besides that, we honour our new alumni members. New members but not only can interact with the old ones to learn some of their stories and experiences within the organization."
+        "desc": "Internal Anniversary is where BEST Brașov members celebrate another year of activity and honor our new alumni. It's the best moment for newer members to meet older generations and hear their stories from BEST."
       }
     }
   },
@@ -347,7 +355,7 @@
       "badgeClosed": "Recruitments are CLOSED",
       "title1": "Don't just be a student.",
       "title2": "Be the BEST.",
-      "subtitle": "Step out of your comfort zone, travel across Europe, develop skills they don't teach you in classes, and meet the best friends you'll ever have.",
+      "subtitle": "Step out of your comfort zone, travel across Europe, learn practical skills you won't find in lectures, and meet some of the best friends you'll ever have.",
       "applyBtn": "Apply Now",
       "closedTooltip1": "Registration is currently closed.",
       "closedTooltip2": "Recruitment will resume in the spring!"
@@ -358,22 +366,22 @@
         {
           "tag": "International",
           "title": "Travel Europe",
-          "desc": "Participate in courses, engineering competitions, and cultural exchanges in 85 universities across 30 countries. Mostly for free!"
+          "desc": "Join courses, engineering competitions, and cultural exchanges in 85 universities across 30 countries, mostly for free!"
         },
         {
           "tag": "Skills",
           "title": "Level Up Your Skills",
-          "desc": "From Public Speaking to Project Management and Web Development. Learn by doing in a safe, risk-free environment."
+          "desc": "From Public Speaking to Project Management and Web Development. Learn by doing in a friendly, supportive team."
         },
         {
           "tag": "Community",
           "title": "Awesome Community",
-          "desc": "Make lifelong friends, go on epic teambuildings, and surround yourself with ambitious people who want more from their student life."
+          "desc": "Make lifelong friends, go on unforgettable teambuildings, and surround yourself with people who want more from student life."
         },
         {
           "tag": "Career",
           "title": "Career Boost",
-          "desc": "Connect directly with top companies, organize massive events, and build a CV that will easily stand out to any employer."
+          "desc": "Work directly with top companies, help organize large events, and build a CV that stands out to any employer."
         }
       ]
     },
@@ -385,7 +393,7 @@
     "contact": {
       "heading1": "Have questions?",
       "heading2": "Get in touch!",
-      "subtitle": "Whether you're a student looking to join our team or a company interested in a partnership, we would love to hear from you.",
+      "subtitle": "Whether you're a student curious about joining or a company looking for a partnership, we would love to hear from you.",
       "emailLabel": "Email",
       "phoneLabel": "Phone",
       "addressLine1": "BEST Brașov, Dorm 15,",
