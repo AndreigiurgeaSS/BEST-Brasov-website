@@ -1,9 +1,8 @@
-import { Mail, Phone, Check, Copy } from "lucide-react";
+import { Mail, Phone, Check, Copy, X } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { siteConfig } from "../config/siteConfig";
+import { useTranslation } from "react-i18next";
 
 // ── Interactive Glass Contact Pill ────────────────────────────────────────────
 const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
@@ -18,6 +17,7 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       title="Click to copy"
       className="group flex items-center gap-3 w-full px-3.5 py-2.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 hover:border-white/25 transition-all duration-300 text-left cursor-pointer"
@@ -31,7 +31,7 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
       >
         {copied ? <Check size={15} /> : <Icon size={15} />}
       </div>
-      <div className="flex-1 min-w-0 pr-1">
+      <div className="flex-1 min-w-0 pr-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
           {copied ? copiedText : label}
         </p>
@@ -47,104 +47,86 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   );
 };
 
-// ── ArcWheel Navigation ───────────────────────────────────────────────────────
-const ARC_CX    = 24;
-const ARC_CY    = 125;
-const ARC_R     = 146;
-const SPREAD    = 26;
-const DRAG_PX   = 48;
-const SETTLE_MS = 1150;
+// ── Split-Track ArcWheel cu Timer + Buton X de Anulare ───────────────────────
+const ARC_CX = 48;
+const ARC_CY = 135;
+const ARC_R = 138;
+const SPREAD = 27;
+const DRAG_PX = 32;
+const SETTLE_MS = 1600;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
-function describeArc(cx, cy, r, startAngleDeg, endAngleDeg) {
-  if (startAngleDeg === endAngleDeg) return "";
-  const startRad = (startAngleDeg * Math.PI) / 180;
-  const endRad   = (endAngleDeg * Math.PI) / 180;
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
 
-  const x1 = cx + r * Math.cos(startRad);
-  const y1 = cy + r * Math.sin(startRad);
-  const x2 = cx + r * Math.cos(endRad);
-  const y2 = cy + r * Math.sin(endRad);
-
-  const largeArcFlag = Math.abs(endAngleDeg - startAngleDeg) <= 180 ? "0" : "1";
-  const sweepFlag = endAngleDeg >= startAngleDeg ? "1" : "0";
-
-  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`;
+function describeArcSegment(cx, cy, r, startDeg, endDeg) {
+  const start = polarToCartesian(cx, cy, r, startDeg);
+  const end = polarToCartesian(cx, cy, r, endDeg);
+  const largeArc = Math.abs(endDeg - startDeg) <= 180 ? "0" : "1";
+  return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
 }
 
 const ArcWheel = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const isRO = !!i18n.language && i18n.language.toLowerCase().startsWith("ro");
+  const isRO = i18n.language?.toLowerCase().startsWith("ro");
 
   const pages = useMemo(
     () => [
       {
         label: t("nav.home"),
         path: "/",
-        hint: t("footer.wheelHints.home", {
-          defaultValue: isRO
-            ? "Povestea, misiunea și valorile noastre."
-            : "Our story, mission, and core values.",
-        }),
+        hint: isRO
+          ? "Povestea, misiunea și valorile noastre."
+          : "Our story, mission, and core values.",
       },
       {
         label: t("nav.events"),
         path: "/events",
-        hint: t("footer.wheelHints.events", {
-          defaultValue: isRO
-            ? "Calendar, competiții și cursuri internaționale."
-            : "Calendar, competitions & European courses.",
-        }),
+        hint: isRO
+          ? "Competiții, cursuri și calendarul anual."
+          : "Competitions, courses & yearly calendar.",
       },
       {
         label: t("nav.departments"),
         path: "/departments",
-        hint: t("footer.wheelHints.departments", {
-          defaultValue: isRO
-            ? "HR, Fundraising, Marketing și IT."
-            : "HR, Fundraising, Marketing & IT.",
-        }),
+        hint: isRO
+          ? "HR, FR, Marketing și IT în culise."
+          : "HR, FR, Marketing & IT behind the scenes.",
       },
       {
         label: t("nav.management"),
         path: "/management",
-        hint: t("footer.wheelHints.management", {
-          defaultValue: isRO
-            ? "Board-ul local și coordonatorii."
-            : "Local Board & department coordinators.",
-        }),
+        hint: isRO
+          ? "Board-ul local și coordonatorii BEST."
+          : "Local Board & department coordinators.",
       },
       {
         label: t("nav.partners"),
         path: "/partners",
-        hint: t("footer.wheelHints.partners", {
-          defaultValue: isRO
-            ? "Companiile și instituțiile care ne susțin."
-            : "Companies & institutions supporting us.",
-        }),
+        hint: isRO
+          ? "Companiile și partenerii noștri."
+          : "Companies and partners supporting us.",
       },
       {
         label: t("nav.faq"),
         path: "/faq",
-        hint: t("footer.wheelHints.faq", {
-          defaultValue: isRO
-            ? "Răspunsuri rapide despre BEST."
-            : "Quick answers about joining BEST.",
-        }),
+        hint: isRO
+          ? "Răspunsuri rapide despre recrutare."
+          : "Quick answers about joining BEST.",
       },
       {
         label: t("nav.join"),
         path: "/join",
-        hint: t("footer.wheelHints.join", {
-          defaultValue: isRO
-            ? "Recrutări, beneficii și contact direct."
-            : "Recruitment, benefits & direct contact.",
-        }),
+        hint: isRO
+          ? "Aplică în BEST sau contactează-ne."
+          : "Apply to BEST or get in touch.",
       },
     ],
     [t, isRO]
@@ -162,57 +144,67 @@ const ArcWheel = () => {
     [pages]
   );
 
-  const [activeIdx, setActiveIdx]   = useState(() => getIndexFromPath(location.pathname));
-  const [wheelStep, setWheelStep]   = useState(0);
-  const [hoveredIdx, setHoveredIdx] = useState(null);
+  const [activeIdx, setActiveIdx] = useState(() => getIndexFromPath(location.pathname));
+  const [countdownMs, setCountdownMs] = useState(0);
+  const [isCountingDown, setIsCountingDown] = useState(false);
 
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [countdown, setCountdown] = useState({
-    active: false,
-    remainingMs: 0,
-    totalMs: SETTLE_MS,
-  });
-
-  const dragging       = useRef(false);
-  const isInteracting  = useRef(false);
-  const startY         = useRef(0);
-  const startIdx       = useRef(0);
-  const startWheelStep = useRef(0);
-  const movedPx        = useRef(0);
-  const commitTimer    = useRef(null);
-  const countdownRaf   = useRef(null);
-  const activeIdxRef   = useRef(activeIdx);
-  const wheelStepRef   = useRef(0);
+  const activeIdxRef = useRef(activeIdx);
+  const wheelRef = useRef(null);
+  const dragging = useRef(false);
+  const isInteracting = useRef(false);
+  const startY = useRef(0);
+  const startIdx = useRef(0);
+  const movedPx = useRef(0);
+  const commitTimer = useRef(null);
+  const countdownInterval = useRef(null);
 
   useEffect(() => {
     activeIdxRef.current = activeIdx;
   }, [activeIdx]);
 
   useEffect(() => {
-    if (!isInteracting.current && !isNavigating) {
+    if (!isInteracting.current) {
       setActiveIdx(getIndexFromPath(location.pathname));
     }
-  }, [location.pathname, getIndexFromPath, isNavigating]);
+  }, [location.pathname, getIndexFromPath]);
 
-  const stopCountdown = useCallback(() => {
-    if (commitTimer.current) clearTimeout(commitTimer.current);
-    if (countdownRaf.current) cancelAnimationFrame(countdownRaf.current);
-    setCountdown((prev) =>
-      prev.active ? { active: false, remainingMs: 0, totalMs: SETTLE_MS } : prev
-    );
-    setIsNavigating(false);
+  const clearTimers = useCallback(() => {
+    if (commitTimer.current) {
+      clearTimeout(commitTimer.current);
+      commitTimer.current = null;
+    }
+    if (countdownInterval.current) {
+      clearInterval(countdownInterval.current);
+      countdownInterval.current = null;
+    }
+    setIsCountingDown(false);
+    setCountdownMs(0);
   }, []);
+
+  // ── Butonul X: oprește instant navigarea și revine la pagina curentă ──
+  const handleCancelNavigation = useCallback(
+    (e) => {
+      e?.stopPropagation();
+      clearTimers();
+      isInteracting.current = false;
+      const currentIdx = getIndexFromPath(location.pathname);
+      activeIdxRef.current = currentIdx;
+      setActiveIdx(currentIdx);
+    },
+    [clearTimers, getIndexFromPath, location.pathname]
+  );
 
   const commitNavigation = useCallback(
     (targetIdx) => {
-      setIsNavigating(false);
+      clearTimers();
       isInteracting.current = false;
       const targetPath = pages[targetIdx].path;
-      window.isAutoScrolling = true;
 
+      window.isAutoScrolling = true;
       if (location.pathname !== targetPath) {
         navigate(targetPath);
       }
+
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
         setTimeout(() => {
@@ -220,93 +212,64 @@ const ArcWheel = () => {
         }, 900);
       }, 60);
     },
-    [navigate, location.pathname, pages]
+    [clearTimers, navigate, location.pathname, pages]
   );
 
   const scheduleCommit = useCallback(
     (targetIdx, delay = SETTLE_MS) => {
-      stopCountdown();
-      const startTime = performance.now();
+      clearTimers();
+      const startedAt = Date.now();
+      setIsCountingDown(true);
+      setCountdownMs(delay);
 
-      const updateTimer = (now) => {
-        const elapsed = now - startTime;
-        const remaining = Math.max(0, delay - elapsed);
-        setCountdown({ active: true, remainingMs: remaining, totalMs: delay });
+      countdownInterval.current = setInterval(() => {
+        const remaining = Math.max(0, delay - (Date.now() - startedAt));
+        setCountdownMs(remaining);
+      }, 50);
 
-        if (remaining > 0) {
-          countdownRaf.current = requestAnimationFrame(updateTimer);
-        } else {
-          setIsNavigating(true);
-          commitTimer.current = setTimeout(() => {
-            commitNavigation(targetIdx);
-          }, 250);
-        }
-      };
-      countdownRaf.current = requestAnimationFrame(updateTimer);
+      commitTimer.current = setTimeout(() => {
+        commitNavigation(targetIdx);
+      }, delay);
     },
-    [commitNavigation, stopCountdown]
+    [clearTimers, commitNavigation]
   );
 
-  useEffect(() => {
-    return () => stopCountdown();
-  }, [stopCountdown]);
+  useEffect(() => clearTimers, [clearTimers]);
 
-  function getPos(offsetSteps) {
-    const angleDeg = offsetSteps * SPREAD;
-    const rad = (angleDeg * Math.PI) / 180;
-    return {
-      x: ARC_CX + ARC_R * Math.cos(rad),
-      y: ARC_CY + ARC_R * Math.sin(rad),
-    };
-  }
-
-  const visibleOffsets = [-3, -2, -1, 0, 1, 2, 3];
-  const getClientY = (e) => (e.touches ? e.touches[0].clientY : e.clientY);
-
-  const onStart = useCallback(
+  // Mouse drag doar pe desktop (pe mobil lăsăm scroll-ul nativ liber!)
+  const onMouseDown = useCallback(
     (e) => {
-      stopCountdown();
-      dragging.current       = true;
-      isInteracting.current  = true;
-      movedPx.current        = 0;
-      startY.current         = getClientY(e);
-      startIdx.current       = activeIdxRef.current;
-      startWheelStep.current = wheelStepRef.current;
+      clearTimers();
+      dragging.current = true;
+      isInteracting.current = true;
+      movedPx.current = 0;
+      startY.current = e.clientY;
+      startIdx.current = activeIdxRef.current;
     },
-    [stopCountdown]
+    [clearTimers]
   );
 
-  const onMove = useCallback(
+  const onMouseMove = useCallback(
     (e) => {
       if (!dragging.current) return;
-      if (e.cancelable) e.preventDefault();
-
-      const delta = startY.current - getClientY(e);
+      const delta = startY.current - e.clientY;
       movedPx.current = Math.max(movedPx.current, Math.abs(delta));
+      if (Math.abs(delta) < 8) return;
 
-      if (Math.abs(delta) < 10) return;
-
-      const steps   = Math.round(delta / DRAG_PX);
+      const steps = Math.round(delta / DRAG_PX);
       const nextIdx = mod(startIdx.current + steps, N);
-      const nextWheelStep = startWheelStep.current + steps;
-
-      if (nextIdx !== activeIdxRef.current || nextWheelStep !== wheelStepRef.current) {
+      if (nextIdx !== activeIdxRef.current) {
         activeIdxRef.current = nextIdx;
-        wheelStepRef.current = nextWheelStep;
         setActiveIdx(nextIdx);
-        setWheelStep(nextWheelStep);
-        setHoveredIdx(nextIdx);
       }
     },
     [N]
   );
 
-  const onEnd = useCallback(() => {
+  const onMouseUp = useCallback(() => {
     if (!dragging.current) return;
     dragging.current = false;
-    setHoveredIdx(null);
-
-    if (movedPx.current >= 10) {
+    if (movedPx.current >= 8) {
       scheduleCommit(activeIdxRef.current, SETTLE_MS);
     } else {
       isInteracting.current = false;
@@ -314,249 +277,181 @@ const ArcWheel = () => {
   }, [scheduleCommit]);
 
   useEffect(() => {
-    window.addEventListener("mousemove", onMove, { passive: false });
-    window.addEventListener("mouseup",   onEnd);
-    window.addEventListener("touchmove", onMove, { passive: false });
-    window.addEventListener("touchend",  onEnd);
-    window.addEventListener("touchcancel", onEnd);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup",   onEnd);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend",  onEnd);
-      window.removeEventListener("touchcancel", onEnd);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
-  }, [onMove, onEnd]);
+  }, [onMouseMove, onMouseUp]);
 
-  const wheelRotationDeg = -wheelStep * SPREAD;
-  const arcApexX = ARC_CX + ARC_R;
+  // Scroll wheel pe desktop
+  useEffect(() => {
+    const el = wheelRef.current;
+    if (!el) return;
+    const handleWheel = (e) => {
+      if (window.innerWidth < 1024) return;
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : -1;
+      isInteracting.current = true;
+      const nextIdx = mod(activeIdxRef.current + dir, N);
+      activeIdxRef.current = nextIdx;
+      setActiveIdx(nextIdx);
+      scheduleCommit(nextIdx, SETTLE_MS);
+    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [N, scheduleCommit]);
 
-  const trackAngles = useMemo(() => {
-    const arr = [];
-    for (let i = -7; i <= 7; i++) arr.push(i);
-    return arr;
-  }, []);
-
-  const fillAmount = countdown.active
-    ? Math.max(0, Math.min(1, 1 - countdown.remainingMs / countdown.totalMs))
-    : 0;
-
-  const displayFill = isNavigating ? 1 : fillAmount;
+  const visibleOffsets = [-3, -2, -1, 0, 1, 2, 3];
   const activePage = pages[activeIdx];
+  const progressRatio = isCountingDown ? countdownMs / SETTLE_MS : 0;
 
   return (
     <div
-      className="relative select-none touch-none cursor-grab active:cursor-grabbing mx-auto lg:mx-0"
-      style={{
-        width: "300px",
-        height: "250px",
-        flexShrink: 0,
-        touchAction: "none",
-        overscrollBehavior: "contain",
-      }}
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onStart(e);
-      }}
-      onTouchStart={(e) => {
-        onStart(e);
-      }}
-      onDragStart={(e) => e.preventDefault()}
+      ref={wheelRef}
+      onMouseDown={onMouseDown}
+      className="relative select-none touch-pan-y lg:touch-none lg:cursor-grab lg:active:cursor-grabbing"
+      style={{ width: "310px", height: "270px", flexShrink: 0 }}
     >
+      {/* ── Arc SVG Secționat (7 segmente) ── */}
       <svg
-        viewBox="0 0 300 250"
-        width="300"
-        height="250"
-        style={{ position: "absolute", inset: 0, overflow: "visible", pointerEvents: "none" }}
+        viewBox="0 0 310 270"
+        width="310"
+        height="270"
+        className="absolute inset-0 overflow-visible pointer-events-none"
       >
-        <defs>
-          <linearGradient id="wheelFadeMaskGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="black" />
-            <stop offset="15%" stopColor="white" />
-            <stop offset="85%" stopColor="white" />
-            <stop offset="100%" stopColor="black" />
-          </linearGradient>
-          <mask id="wheelArcMask">
-            <rect x="-40" y="0" width="300" height="250" fill="url(#wheelFadeMaskGrad)" />
-          </mask>
-
-          <linearGradient id="innerConnectorGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
-            <stop
-              offset="100%"
-              stopColor={
-                countdown.active || isNavigating
-                  ? "rgba(255,255,255,0.85)"
-                  : "rgba(253,164,175,0.55)"
-              }
-            />
-          </linearGradient>
-        </defs>
-
-        <g mask="url(#wheelArcMask)">
-          <motion.g
-            initial={false}
-            animate={{ rotate: wheelRotationDeg }}
-            transition={{ type: "spring", stiffness: 260, damping: 28, mass: 0.85 }}
-            style={{ transformOrigin: `${ARC_CX}px ${ARC_CY}px` }}
-          >
-            {trackAngles.map((i) => (
-              <path
-                key={i}
-                d={describeArc(ARC_CX, ARC_CY, ARC_R, i * SPREAD - 10.5, i * SPREAD + 10.5)}
-                stroke="rgba(255,255,255,0.18)"
-                strokeWidth="3.5"
-                fill="none"
-                strokeLinecap="round"
-              />
-            ))}
-          </motion.g>
-        </g>
-
-        <line
-          x1={arcApexX - 28}
-          y1={ARC_CY}
-          x2={arcApexX - 6}
-          y2={ARC_CY}
-          stroke="url(#innerConnectorGrad)"
-          strokeWidth="1.25"
-          strokeLinecap="round"
-        />
-        <circle
-          cx={arcApexX - 28}
-          cy={ARC_CY}
-          r="2"
-          fill={countdown.active || isNavigating ? "#ffffff" : "#fda4af"}
-          opacity={countdown.active || isNavigating ? 0.95 : 0.65}
-        />
-
-        {(countdown.active || isNavigating) && displayFill > 0 && (
-          <path
-            d={describeArc(ARC_CX, ARC_CY, ARC_R, -10.5 * displayFill, 10.5 * displayFill)}
-            stroke="#ffffff"
-            strokeWidth="4.5"
-            fill="none"
-            strokeLinecap="round"
-          />
-        )}
-
-        <AnimatePresence>
-          {isNavigating && (
-            <motion.path
-              initial={{ scale: 1, opacity: 0.8, strokeWidth: 5 }}
-              animate={{ scale: 1.15, opacity: 0, strokeWidth: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              d={describeArc(ARC_CX, ARC_CY, ARC_R, -11, 11)}
-              stroke="#ffffff"
+        {visibleOffsets.map((offset) => {
+          const centerDeg = offset * SPREAD;
+          const halfSpan = SPREAD * 0.36;
+          const d = describeArcSegment(
+            ARC_CX,
+            ARC_CY,
+            ARC_R,
+            centerDeg - halfSpan,
+            centerDeg + halfSpan
+          );
+          const isCenter = offset === 0;
+          return (
+            <path
+              key={offset}
+              d={d}
               fill="none"
+              stroke={isCenter ? "#ffffff" : "rgba(255,255,255,0.22)"}
+              strokeWidth={isCenter ? "3.2" : "1.8"}
               strokeLinecap="round"
-              style={{ transformOrigin: `${ARC_CX}px ${ARC_CY}px` }}
+              opacity={isCenter ? 1 : Math.max(0.2, 0.75 - Math.abs(offset) * 0.18)}
             />
-          )}
-        </AnimatePresence>
+          );
+        })}
+
+        {/* Punct discret pe interiorul arcului */}
+        <circle
+          cx={ARC_CX + ARC_R - 18}
+          cy={ARC_CY}
+          r="2.5"
+          fill="rgba(255,255,255,0.65)"
+        />
       </svg>
 
-      {/* Preview dinamic în interiorul arcului */}
+      {/* ── Preview + Timer cu Buton X în concavitatea arcului ── */}
       <div
-        className="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 pr-2 text-right"
-        style={{ width: `${arcApexX - 34}px` }}
+        className="absolute top-1/2 -translate-y-1/2 left-0 pr-3 text-right z-20"
+        style={{ width: `${ARC_CX + ARC_R - 26}px` }}
       >
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeIdx}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="flex flex-col items-end gap-1"
-          >
-            <p className="text-xs font-extrabold text-white/95 leading-tight tracking-wide">
-              {activePage.label}
-            </p>
-            <p className="text-[11px] text-rose-100/65 dark:text-gray-400 leading-snug">
-              {activePage.hint}
-            </p>
-          </motion.div>
+          {isCountingDown ? (
+            <motion.div
+              key="timer-active"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="flex flex-col items-end gap-2"
+            >
+              <div className="inline-flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-full bg-black/45 border border-white/20 shadow-lg">
+                {/* Numărătoare inversă */}
+                <span className="text-[11px] font-black tabular-nums text-white">
+                  {(countdownMs / 1000).toFixed(1)}s
+                </span>
+
+                {/* Bară mini de progres */}
+                <span className="w-8 h-1.5 rounded-full bg-white/15 overflow-hidden">
+                  <span
+                    className="block h-full bg-emerald-400 rounded-full"
+                    style={{ width: `${Math.round(progressRatio * 100)}%` }}
+                  />
+                </span>
+
+                {/* Buton X evident pentru a anula schimbarea paginii */}
+                <button
+                  type="button"
+                  onClick={handleCancelNavigation}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  aria-label={isRO ? "Anulează navigarea" : "Cancel navigation"}
+                  className="w-6 h-6 rounded-full bg-rose-500 hover:bg-rose-400 active:scale-90 text-white flex items-center justify-center shadow-md ring-2 ring-white/30 transition-transform cursor-pointer"
+                >
+                  <X size={13} strokeWidth={3} />
+                </button>
+              </div>
+              <p className="text-[10px] font-semibold text-rose-200/80">
+                {isRO ? "Apasă X pentru a anula" : "Tap X to cancel"}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`hint-${activeIdx}`}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.18 }}
+              className="flex flex-col items-end gap-1 pointer-events-none"
+            >
+              <p className="text-xs font-extrabold text-white/95 leading-tight tracking-wide">
+                {activePage.label}
+              </p>
+              <p className="text-[11px] text-rose-100/65 dark:text-gray-400 leading-snug">
+                {activePage.hint}
+              </p>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
-      {/* Textele paginilor */}
+      {/* ── Etichetele paginilor pe exteriorul arcului ── */}
       {visibleOffsets.map((offset) => {
-        const idx       = mod(activeIdx + offset, N);
-        const pos       = getPos(offset);
+        const idx = mod(activeIdx + offset, N);
+        const pos = polarToCartesian(ARC_CX, ARC_CY, ARC_R, offset * SPREAD);
         const absOffset = Math.abs(offset);
-
-        const isHovered = hoveredIdx === idx;
-        const isCenter  = offset === 0;
-
-        const opacity    = isCenter ? 1 : isHovered ? 1 : absOffset === 1 ? 0.78 : absOffset === 2 ? 0.5 : 0.25;
-        const fontSize   = isCenter ? 17.5 : absOffset === 1 ? 14 : absOffset === 2 ? 12.5 : 11;
-        const fontWeight = isCenter || isHovered ? 800 : 500;
-        const xPadding   = 12;
-
-        const textScale = isNavigating && isCenter ? 1.15 : isCenter ? 1.05 : isHovered ? 1.03 : 1;
+        const isCenter = offset === 0;
+        const opacity = isCenter ? 1 : Math.max(0.22, 0.72 - absOffset * 0.16);
+        const fontSize = isCenter ? 16 : Math.max(11, 13.5 - absOffset * 0.9);
 
         return (
-          <motion.div
+          <button
             key={offset}
-            initial={false}
-            animate={{
-              left: pos.x + xPadding,
-              top: pos.y,
-              y: "-50%",
-              opacity,
-              scale: textScale,
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (movedPx.current >= 8) return;
+              isInteracting.current = true;
+              activeIdxRef.current = idx;
+              setActiveIdx(idx);
+              scheduleCommit(idx, SETTLE_MS);
             }}
-            whileHover={{ x: 4, opacity: 1, scale: 1.05 }}
-            onMouseEnter={() => setHoveredIdx(idx)}
-            onMouseLeave={() => setHoveredIdx(null)}
-            transition={{ type: "spring", stiffness: 300, damping: 26, mass: 0.8 }}
-            onClick={() => {
-              if (movedPx.current > 10) return;
-              if (idx !== activeIdxRef.current) {
-                const stepDiff = offset;
-                activeIdxRef.current = idx;
-                wheelStepRef.current = wheelStepRef.current + stepDiff;
-                setActiveIdx(idx);
-                setWheelStep(wheelStepRef.current);
-                setHoveredIdx(idx);
-                scheduleCommit(idx, SETTLE_MS);
-              } else {
-                commitNavigation(idx);
-              }
-            }}
-            className="flex items-center gap-1.5"
             style={{
-              position:        "absolute",
-              transformOrigin: "left center",
-              fontSize:        `${fontSize}px`,
-              fontWeight,
-              color:           isCenter && isNavigating ? "#ffffff" : isCenter && countdown.active ? "#fecdd3" : "#ffffff",
-              whiteSpace:      "nowrap",
-              cursor:          "pointer",
-              letterSpacing:   "0.02em",
-              pointerEvents:   "auto",
-              padding:         "6px",
-              userSelect:      "none",
-              touchAction:     "none",
-              willChange:      "transform, opacity",
+              position: "absolute",
+              left: `${pos.x + 16}px`,
+              top: `${pos.y}px`,
+              transform: "translateY(-50%)",
+              fontSize: `${fontSize}px`,
+              fontWeight: isCenter ? 800 : 500,
+              color: `rgba(255,255,255,${opacity})`,
             }}
+            className="whitespace-nowrap cursor-pointer tracking-wide transition-opacity duration-200 py-1.5 px-1 text-left"
           >
-            <motion.span
-              initial={{ opacity: 0, x: -5 }}
-              animate={{
-                opacity: isCenter ? 1 : 0,
-                x: isCenter ? 0 : -5,
-              }}
-              className="text-[15px] font-black text-rose-200 flex-shrink-0 relative -top-[1px]"
-              style={{ lineHeight: 1 }}
-            >
-              {">"}
-            </motion.span>
-            <span style={{ lineHeight: 1 }} className="flex-shrink-0">
-              {pages[idx].label}
-            </span>
-          </motion.div>
+            {isCenter ? `> ${pages[idx].label}` : pages[idx].label}
+          </button>
         );
       })}
     </div>
@@ -612,33 +507,19 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#2a0015] dark:from-[#240404] dark:to-[#0c0101] text-gray-200 pt-14 pb-8 border-t border-white/10 dark:border-rose-950/50 transition-colors duration-300">
-      {/* Glow ușor pe GPU (radial-gradient în loc de blur-3xl) */}
+    <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#320019] dark:from-[#1d0208] dark:to-[#0f0103] text-gray-200 pt-14 pb-28 lg:pb-8 border-t border-white/10 dark:border-rose-950/60 transition-colors duration-300">
+      {/* Watermark uriaș BEST în fundal */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[560px] h-[200px]"
-        style={{
-          background:
-            "radial-gradient(ellipse at top, rgba(244, 63, 94, 0.14) 0%, transparent 72%)",
-        }}
-      />
-
-      {/* Watermark „BEST” poziționat jos-centru/dreapta, departe de zona logo-ului (respectă clear space brandbook) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute inset-x-0 bottom-14 overflow-hidden z-0"
+        className="pointer-events-none select-none absolute bottom-10 lg:bottom-2 left-1/2 -translate-x-1/2 text-[110px] sm:text-[180px] lg:text-[230px] font-black tracking-tighter text-white/[0.035] leading-none whitespace-nowrap"
       >
-        <div className="max-w-[1200px] mx-auto px-6 sm:px-8 flex justify-center lg:justify-end">
-          <span className="font-black uppercase leading-[0.82] tracking-[0.14em] text-[22vw] sm:text-[18vw] lg:text-[165px] text-white/[0.035] dark:text-rose-200/[0.028]">
-            BEST
-          </span>
-        </div>
+        BEST
       </div>
 
-      <div className="max-w-[1200px] mx-auto px-6 sm:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center pb-12">
-          {/* Stânga (Brand & Info — ridicat sus ca să aibă clear space total în jurul logo-ului) */}
-          <div className="lg:col-span-4 lg:self-start lg:pt-2 flex flex-col items-center lg:items-start gap-4">
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center pb-10">
+          {/* Col 1: Brand */}
+          <div className="lg:col-span-4 flex flex-col items-center lg:items-start gap-4">
             <Link
               to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -647,8 +528,6 @@ const Footer = () => {
               <img
                 src="/images/logos/logo-BestBV.png"
                 alt="BEST Brașov Logo"
-                loading="lazy"
-                decoding="async"
                 className="h-16 sm:h-20 w-auto hover:scale-105 transition-transform duration-300"
               />
             </Link>
@@ -658,13 +537,13 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Centru (Arc Wheel) */}
-          <div className="lg:col-span-4 flex justify-center items-center py-2">
+          {/* Col 2: Arc Navigation Wheel */}
+          <div className="lg:col-span-4 flex justify-center">
             <ArcWheel />
           </div>
 
-          {/* Dreapta (Socials + Contacts din siteConfig) */}
-          <div className="lg:col-span-4 flex flex-col items-center lg:items-end gap-5 w-full max-w-[280px] mx-auto lg:mx-0 lg:ml-auto">
+          {/* Col 3: Socials & Contacts */}
+          <div className="lg:col-span-4 flex flex-col items-center gap-5 w-full max-w-[300px] mx-auto lg:mx-0 lg:ml-auto">
             <div className="flex flex-col items-center gap-2.5 w-full">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
                 {t("footer.followUs")}
@@ -685,21 +564,21 @@ const Footer = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2.5 w-full pt-1">
+            <div className="flex flex-col gap-2.5 w-full">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-200/60 dark:text-gray-500 text-center">
-                {t("footer.contacts", { defaultValue: "Contacts" })}
+                Contacts
               </p>
               <CopyableContact
                 label="Email"
-                value={siteConfig.contact.email}
-                displayValue={siteConfig.contact.email}
+                value="bv-board@BEST-eu.org"
+                displayValue="bv-board@BEST-eu.org"
                 Icon={Mail}
                 copiedText={t("footer.copied")}
               />
               <CopyableContact
                 label="Phone"
-                value={siteConfig.contact.phone}
-                displayValue={siteConfig.contact.phoneDisplay}
+                value="+40730827778"
+                displayValue="+40 730 827 778"
                 Icon={Phone}
                 copiedText={t("footer.copied")}
               />
@@ -708,16 +587,10 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-6 border-t border-white/10 dark:border-rose-950/60 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500">
-          <p>{t("footer.rights").replace("{{year}}", year)}</p>
+        <div className="pt-6 border-t border-white/10 dark:border-gray-800/80 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-rose-200/60 dark:text-gray-500 text-center">
+          <p>{t("footer.rights", { year })}</p>
           <p className="flex items-center gap-1.5">
-            {t("footer.madeWith")}{" "}
-            <span
-              className="inline-block text-red-500 animate-heartbeat select-none"
-              aria-label="love"
-            >
-              ❤️
-            </span>{" "}
+            {t("footer.madeWith")} <span className="text-rose-400 animate-heartbeat">❤️</span>{" "}
             <span className="text-white/90 font-semibold">{t("footer.byItDept")}</span>
           </p>
         </div>
