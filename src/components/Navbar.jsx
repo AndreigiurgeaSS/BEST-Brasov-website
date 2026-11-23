@@ -137,7 +137,6 @@ function ConfettiBurst({ origin, onDone }) {
   );
 }
 
-// ── Pill Switch Unificat EN / RO ─────────────────────────────────────────────
 const LanguageSwitch = ({ lang, onToggle, compact = false, insideCapsule = false }) => {
   const isRO = lang === "RO";
 
@@ -162,20 +161,11 @@ const LanguageSwitch = ({ lang, onToggle, compact = false, insideCapsule = false
           isRO ? "translate-x-full" : "translate-x-0"
         }`}
       />
-
       <div className="absolute inset-0 grid grid-cols-2 items-center text-[10px] font-black tracking-wider">
-        <span
-          className={`text-center transition-colors duration-200 ${
-            !isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
-          }`}
-        >
+        <span className={`text-center transition-colors duration-200 ${!isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"}`}>
           EN
         </span>
-        <span
-          className={`text-center transition-colors duration-200 ${
-            isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
-          }`}
-        >
+        <span className={`text-center transition-colors duration-200 ${isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"}`}>
           RO
         </span>
       </div>
@@ -183,8 +173,7 @@ const LanguageSwitch = ({ lang, onToggle, compact = false, insideCapsule = false
   );
 };
 
-// ── Eco / Reduced Motion Button (Tooltip pe desktop + Puls la auto-activare) ─
-const EcoModeButton = ({ isEcoMode, showAutoPulse, onClick, isRO, compact = false }) => {
+const EcoModeButton = ({ isEcoMode, showAutoPulse, onClick, isRO }) => {
   const tooltipText = isEcoMode
     ? isRO
       ? "Mod Eco activ: animații reduse pentru performanță"
@@ -200,9 +189,7 @@ const EcoModeButton = ({ isEcoMode, showAutoPulse, onClick, isRO, compact = fals
         onClick={onClick}
         aria-label={tooltipText}
         aria-pressed={isEcoMode}
-        className={`relative flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-          compact ? "w-8 h-8" : "w-8 h-8"
-        } ${
+        className={`relative flex items-center justify-center w-8 h-8 rounded-full transition-colors cursor-pointer ${
           isEcoMode
             ? "bg-emerald-500/25 text-emerald-300 border border-emerald-400/45"
             : "bg-white/10 lg:bg-white/[0.06] hover:bg-white/20 text-white/90 dark:text-gray-200"
@@ -214,7 +201,6 @@ const EcoModeButton = ({ isEcoMode, showAutoPulse, onClick, isRO, compact = fals
         <Leaf size={15} strokeWidth={2.2} />
       </button>
 
-      {/* Tooltip pe laptop la hover */}
       <div className="hidden lg:block pointer-events-none opacity-0 group-hover/eco:opacity-100 transition-opacity duration-200 absolute top-full left-1/2 -translate-x-1/2 mt-3.5 w-56 px-3 py-2 rounded-xl bg-gray-950/95 text-white text-[11px] font-medium text-center shadow-xl border border-white/10 z-50">
         {tooltipText}
       </div>
@@ -285,15 +271,48 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location.pathname]);
 
+  // ── Scroll Lock complet pe mobil (îngheață complet pagina din spate) ──
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (isOpen) {
+      const scrollY = window.scrollY;
+      body.dataset.scrollLockY = String(scrollY);
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.left = "0";
+      body.style.right = "0";
+      body.style.width = "100%";
+    } else if (body.dataset.scrollLockY !== undefined) {
+      const savedY = parseInt(body.dataset.scrollLockY || "0", 10);
+      html.style.overflow = "";
+      body.style.overflow = "";
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      delete body.dataset.scrollLockY;
+      window.scrollTo(0, savedY);
+    }
+
     return () => {
-      document.body.style.overflow = "";
+      html.style.overflow = "";
+      body.style.overflow = "";
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
     };
   }, [isOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
+      if (isOpen) return;
       const currentScrollY = window.scrollY;
 
       if (window.isAutoScrolling) {
@@ -309,7 +328,7 @@ const Navbar = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -402,38 +421,18 @@ const Navbar = () => {
 
                   {/* Desktop: Separator discret + Capsulă unificată [Eco | EN/RO | Temă] */}
                   <div className="hidden lg:flex items-center gap-4">
-                    <span
-                      aria-hidden="true"
-                      className="w-px h-7 bg-white/20 dark:bg-white/15"
-                    />
+                    <span aria-hidden="true" className="w-px h-7 bg-white/20 dark:bg-white/15" />
 
                     <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-full bg-black/25 dark:bg-white/[0.06] border border-white/15 shadow-inner">
-                      {/* 1. Eco */}
                       <EcoModeButton
                         isEcoMode={isEcoMode}
                         showAutoPulse={showAutoPulse}
                         onClick={handleEcoToggle}
                         isRO={isRO}
                       />
-
-                      <span
-                        aria-hidden="true"
-                        className="w-px h-4 bg-white/15 mx-0.5"
-                      />
-
-                      {/* 2. Traducere */}
-                      <LanguageSwitch
-                        lang={lang}
-                        onToggle={toggleLanguage}
-                        insideCapsule
-                      />
-
-                      <span
-                        aria-hidden="true"
-                        className="w-px h-4 bg-white/15 mx-0.5"
-                      />
-
-                      {/* 3. Temă */}
+                      <span aria-hidden="true" className="w-px h-4 bg-white/15 mx-0.5" />
+                      <LanguageSwitch lang={lang} onToggle={toggleLanguage} insideCapsule />
+                      <span aria-hidden="true" className="w-px h-4 bg-white/15 mx-0.5" />
                       <button
                         type="button"
                         onClick={toggleDarkMode}
@@ -476,9 +475,8 @@ const Navbar = () => {
                   </Link>
                 </div>
 
-                {/* Mobil & Tabletă Top Bar (Dreapta): exact [Temă → Traducere → Eco] */}
+                {/* Mobil & Tabletă Top Bar (Dreapta): [Temă → Traducere → Eco] */}
                 <div className="lg:hidden flex items-center gap-2">
-                  {/* 1. Temă */}
                   <button
                     type="button"
                     onClick={toggleDarkMode}
@@ -487,17 +485,12 @@ const Navbar = () => {
                   >
                     {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                   </button>
-
-                  {/* 2. Traducere */}
                   <LanguageSwitch lang={lang} onToggle={toggleLanguage} compact />
-
-                  {/* 3. Eco */}
                   <EcoModeButton
                     isEcoMode={isEcoMode}
                     showAutoPulse={showAutoPulse}
                     onClick={handleEcoToggle}
                     isRO={isRO}
-                    compact
                   />
                 </div>
               </div>
@@ -516,10 +509,7 @@ const Navbar = () => {
               className="flex justify-center mt-2 px-4 pointer-events-none"
             >
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gray-950/92 text-white text-xs font-bold shadow-lg border border-white/15">
-                <Leaf
-                  size={13}
-                  className={isEcoMode ? "text-emerald-400" : "text-rose-300"}
-                />
+                <Leaf size={13} className={isEcoMode ? "text-emerald-400" : "text-rose-300"} />
                 <span>{ecoToast}</span>
               </div>
             </motion.div>
@@ -527,13 +517,13 @@ const Navbar = () => {
         </AnimatePresence>
       </header>
 
-      {/* ── Buton Plutitor Jos-Dreapta (Thumb Zone, doar pe mobil & tabletă) ── */}
+      {/* ── Buton Plutitor Ridicat pe linia albastră (Thumb Zone, doar mobil & tabletă) ── */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={isOpen ? "Close menu" : "Open menu"}
         aria-expanded={isOpen}
-        className={`lg:hidden fixed right-4 bottom-5 z-[70] inline-flex items-center gap-2.5 pl-4 pr-3.5 py-3 rounded-full font-extrabold text-xs uppercase tracking-wider shadow-[0_10px_28px_rgba(0,0,0,0.38)] border active:scale-95 transition-transform duration-150 cursor-pointer select-none
+        className={`lg:hidden fixed right-4 bottom-[5.25rem] z-[90] inline-flex items-center gap-2.5 pl-4 pr-3.5 py-3 rounded-full font-extrabold text-xs uppercase tracking-wider shadow-[0_10px_28px_rgba(0,0,0,0.38)] border active:scale-95 transition-transform duration-150 cursor-pointer select-none
           ${
             isOpen
               ? "bg-white text-[#4F0028] border-white/60"
@@ -553,26 +543,27 @@ const Navbar = () => {
         </span>
       </button>
 
-      {/* ── Side Drawer din Dreapta + Backdrop curat ── */}
+      {/* ── Side Drawer Fix + Backdrop fără blur laggy & fără scroll pe fundal ── */}
       <AnimatePresence>
         {isOpen && (
-          <div className="lg:hidden fixed inset-0 z-[60]">
+          <div className="lg:hidden fixed inset-0 z-[80] touch-none overscroll-none">
+            {/* Backdrop: click/tap închide meniul, touch-none blochează scroll-ul din spate */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.18 }}
               onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/65"
+              className="absolute inset-0 bg-black/72 touch-none overscroll-none"
             />
 
             <motion.aside
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
               style={{ willChange: "transform" }}
-              className={`absolute top-0 right-0 h-full w-[82%] max-w-[320px] flex flex-col border-l shadow-2xl
+              className={`absolute top-0 right-0 h-full w-[82%] max-w-[320px] flex flex-col border-l shadow-2xl overscroll-contain
                 ${
                   isDarkMode
                     ? "bg-gradient-to-b from-[#200308] via-[#160204] to-[#0f0102] border-rose-900/50"
@@ -580,11 +571,7 @@ const Navbar = () => {
                 }`}
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-white/10">
-                <Link
-                  to="/"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center"
-                >
+                <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center">
                   <img
                     src="/images/logos/logo-BestBV.png"
                     alt="BEST Brașov"
@@ -601,7 +588,7 @@ const Navbar = () => {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-1.5">
+              <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y px-4 py-5 flex flex-col gap-1.5">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
                   const isActive = location.pathname === link.path;
@@ -645,7 +632,7 @@ const Navbar = () => {
 
               <div
                 className="px-5 pt-4 border-t border-white/10"
-                style={{ paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}
+                style={{ paddingBottom: "calc(8.5rem + env(safe-area-inset-bottom))" }}
               >
                 <Link
                   to="/join"
