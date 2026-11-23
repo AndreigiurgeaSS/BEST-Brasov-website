@@ -462,7 +462,92 @@ const TestimonialCard = ({ t }) => (
   </div>
 );
 
-// ─── Marquee cu auto-pause când iese de pe ecran + suport Eco Mode ───────────
+// ─── Carusel nativ CSS (60fps, fără hover, fără lag) — STRICT MOBIL ──────────
+const MobileTestimonialsCarousel = ({ testimonials }) => {
+  const scrollRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el || !el.firstElementChild) return;
+    const cardWidth = el.firstElementChild.offsetWidth + 16;
+    const idx = Math.round(el.scrollLeft / cardWidth);
+    setActiveIndex(Math.max(0, Math.min(idx, testimonials.length - 1)));
+  };
+
+  const scrollToCard = (idx) => {
+    const el = scrollRef.current;
+    if (!el || !el.children[idx]) return;
+    setActiveIndex(idx);
+    el.children[idx].scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  };
+
+  return (
+    <div className="lg:hidden w-full">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {testimonials.map((item, idx) => {
+          const isActive = idx === activeIndex;
+          return (
+            <button
+              key={item.id || idx}
+              type="button"
+              onClick={() => scrollToCard(idx)}
+              className={`snap-center flex-shrink-0 w-[84vw] max-w-[340px] ${item.bgColor} p-6 rounded-[1.75rem] shadow-lg text-left flex flex-col justify-between transition-transform duration-200 cursor-pointer ${
+                isActive ? "scale-100 ring-2 ring-rose-400/50" : "scale-[0.97] opacity-85"
+              }`}
+            >
+              <p className="text-white/95 font-medium text-sm leading-relaxed mb-6">
+                "{item.text}"
+              </p>
+
+              <div className="flex items-center gap-3 mt-auto">
+                <div className="w-10 h-10 rounded-full border-2 border-white/20 bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs font-bold">
+                    {item.author
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-bold text-sm truncate">{item.author}</p>
+                  <p className="text-white/75 text-xs font-medium truncate">{item.local}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Puncte centrate pe mobil */}
+      <div className="flex justify-center items-center gap-1.5 mt-3">
+        {testimonials.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => scrollToCard(idx)}
+            aria-label={`Testimonial ${idx + 1}`}
+            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+              idx === activeIndex
+                ? "w-7 bg-[#4F0028] dark:bg-rose-400"
+                : "w-1.5 bg-gray-300 dark:bg-white/20"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Marquee Desktop (auto-oprit sub 1024px ca să nu consume CPU pe mobil) ───
 const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
   const { isEcoMode } = useEcoMode();
   const containerRef = useRef(null);
@@ -495,7 +580,7 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
   }, []);
 
   const measure = useCallback(() => {
-    if (!trackRef.current) return;
+    if (!trackRef.current || window.innerWidth < 1024) return;
     const half = trackRef.current.scrollWidth / 2;
     halfWidthRef.current = half;
     if (direction === 1 && posRef.current === 0 && half > 0) {
@@ -518,7 +603,7 @@ const HorizontalMarquee = ({ testimonials, direction = -1, pausedText }) => {
   }, []);
 
   useEffect(() => {
-    if (isEcoMode) return;
+    if (isEcoMode || (typeof window !== "undefined" && window.innerWidth < 1024)) return;
     let rafId;
     const speed = 0.32;
 
@@ -826,25 +911,36 @@ const JoinUs = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
               {t("joinUs.testimonials.heading")}
             </h2>
-            <p className="text-gray-400 dark:text-gray-500 text-xs">
+            <p className="hidden lg:block text-gray-400 dark:text-gray-500 text-xs">
               {t("joinUs.testimonials.pauseHint")}
+            </p>
+            <p className="lg:hidden text-gray-400 dark:text-gray-500 text-xs">
+              {isRO ? "Glisează sau atinge un card" : "Swipe or tap a card"}
             </p>
           </div>
 
-          <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-16 md:w-32 bg-gradient-to-r from-gray-50 dark:from-[#1e0303] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-16 md:w-32 bg-gradient-to-l from-gray-50 dark:from-[#1e0303] to-transparent z-10 pointer-events-none" />
+          {/* Mobil: Carusel nativ cu Snap + Tap (0 lag, fără hover) */}
+          <MobileTestimonialsCarousel
+            testimonials={[...testimonialsRow1, ...testimonialsRow2]}
+          />
 
-          <div className="flex flex-col gap-4 sm:gap-6 overflow-hidden">
-            <HorizontalMarquee
-              testimonials={testimonialsRow1}
-              direction={-1}
-              pausedText={t("joinUs.testimonials.pausedBadge")}
-            />
-            <HorizontalMarquee
-              testimonials={testimonialsRow2}
-              direction={1}
-              pausedText={t("joinUs.testimonials.pausedBadge")}
-            />
+          {/* Desktop: Marquee-ul dublu original, neschimbat */}
+          <div className="hidden lg:block relative">
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 dark:from-[#1e0303] to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 dark:from-[#1e0303] to-transparent z-10 pointer-events-none" />
+
+            <div className="flex flex-col gap-6 overflow-hidden">
+              <HorizontalMarquee
+                testimonials={testimonialsRow1}
+                direction={-1}
+                pausedText={t("joinUs.testimonials.pausedBadge")}
+              />
+              <HorizontalMarquee
+                testimonials={testimonialsRow2}
+                direction={1}
+                pausedText={t("joinUs.testimonials.pausedBadge")}
+              />
+            </div>
           </div>
         </div>
 

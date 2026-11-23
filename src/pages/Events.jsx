@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -411,50 +411,62 @@ const CalendarSection = ({ events }) => {
 const SingleItemCarousel = ({ events, showButton = true }) => {
   const { t } = useTranslation();
   const [idx, setIdx] = useState(0);
-  const [tx0, setTx0] = useState(null);
-  const [tx1, setTx1] = useState(null);
+  const [dir, setDir] = useState(1);
+  const touchStartX = useRef(null);
 
   useEffect(() => {
     if (!events || events.length === 0) return;
-    const timer = setInterval(
-      () => setIdx((p) => (p === events.length - 1 ? 0 : p + 1)),
-      11000
-    );
+    const timer = setInterval(() => {
+      setDir(1);
+      setIdx((p) => (p === events.length - 1 ? 0 : p + 1));
+    }, 11000);
     return () => clearInterval(timer);
   }, [events, idx]);
 
   if (!events || events.length === 0) return null;
 
-  const next = () => setIdx((p) => (p === events.length - 1 ? 0 : p + 1));
-  const prev = () => setIdx((p) => (p === 0 ? events.length - 1 : p - 1));
-  const onEnd = () => {
-    if (!tx0 || !tx1) return;
-    const d = tx0 - tx1;
-    if (d > 50) next();
-    if (d < -50) prev();
+  const next = () => {
+    setDir(1);
+    setIdx((p) => (p === events.length - 1 ? 0 : p + 1));
   };
+  const prev = () => {
+    setDir(-1);
+    setIdx((p) => (p === 0 ? events.length - 1 : p - 1));
+  };
+  const goTo = (i) => {
+    setDir(i >= idx ? 1 : -1);
+    setIdx(i);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const d = touchStartX.current - e.changedTouches[0].clientX;
+    if (d > 45) next();
+    else if (d < -45) prev();
+    touchStartX.current = null;
+  };
+
   const ev = events[idx];
 
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div
         className="bg-white dark:bg-[#1e0404] rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-rose-950/60 overflow-hidden flex flex-col md:flex-row h-[560px] md:h-[440px] w-full transition-colors duration-300"
-        onTouchStart={(e) => {
-          setTx1(null);
-          setTx0(e.targetTouches[0].clientX);
-        }}
-        onTouchMove={(e) => setTx1(e.targetTouches[0].clientX)}
-        onTouchEnd={onEnd}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <div className="w-full md:w-1/2 h-[330px] md:h-full p-7 sm:p-8 md:p-12 flex flex-col justify-between relative order-2 md:order-1 shrink-0 overflow-hidden">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`t-${idx}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.28 }}
-              className="flex flex-col justify-center flex-1 min-h-0 overflow-hidden"
+              initial={{ opacity: 0, x: dir * 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: dir * -16 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="flex flex-col justify-center flex-1 min-h-0 overflow-hidden will-change-transform"
             >
               <h3 className="text-2xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 tracking-tight leading-tight truncate">
                 {t(ev.titleKey)}
@@ -476,13 +488,16 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
             </motion.div>
           </AnimatePresence>
 
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-rose-950/40 shrink-0">
+          {/* Puncte centrate pe mobil, săgeți ascunse pe mobil și păstrate pe desktop */}
+          <div className="flex items-center justify-center md:justify-between pt-3 border-t border-gray-100 dark:border-rose-950/40 shrink-0">
             <div className="flex items-center gap-2">
               {events.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setIdx(i)}
-                  className={`transition-all duration-300 h-1.5 rounded-full cursor-pointer ${
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Event ${i + 1}`}
+                  className={`transition-all duration-300 h-2 md:h-1.5 rounded-full cursor-pointer ${
                     i === idx
                       ? "bg-[#4F0028] dark:bg-rose-400 w-8"
                       : "bg-gray-200 dark:bg-rose-950 w-2 hover:bg-gray-300"
@@ -490,13 +505,14 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               {[
                 [prev, ChevronLeft],
                 [next, ChevronRight],
               ].map(([fn, Icon], i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={fn}
                   className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 dark:bg-[#140202] border border-gray-200 dark:border-rose-950/60 text-gray-600 dark:text-gray-300 hover:bg-[#4F0028] hover:text-white transition-all shadow-sm cursor-pointer"
                 >
@@ -515,20 +531,20 @@ const SingleItemCarousel = ({ events, showButton = true }) => {
               background: "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)",
             }}
           />
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`i-${idx}`}
-              initial={{ opacity: 0, scale: 0.92 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.92 }}
-              transition={{ duration: 0.3 }}
-              className="relative z-10 w-[220px] h-[150px] md:w-[280px] md:h-[220px] flex justify-center items-center"
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="relative z-10 w-[220px] h-[150px] md:w-[280px] md:h-[220px] flex justify-center items-center will-change-transform"
             >
               <img
                 src={ev.image}
                 alt={t(ev.titleKey)}
                 decoding="async"
-                className="w-full h-full object-contain drop-shadow-2xl animate-float-y"
+                className="w-full h-full object-contain drop-shadow-2xl md:animate-float-y"
                 onError={(e) => {
                   e.target.style.display = "none";
                 }}
