@@ -33,7 +33,7 @@
 
   "_SECTION_2": "---------------- 2. HOME PAGE (HERO, WHAT IS BEST, WHAT WE DO, VALUES) ----------------",
   "hero": {
-    "pageTitle": "BEST Brașov",
+    "pageTitle": "BEST Brașov | Developing students since 1997",
     "tag": "Board of European Students of Technology",
     "titleStart": "BEST",
     "titleHighlight": "Brașov",
@@ -129,7 +129,7 @@
 
   "_SECTION_3": "---------------- 3. DEPARTMENTS PAGE ----------------",
   "departmentsPage": {
-    "pageTitle": "Departments | BEST Brașov",
+    "pageTitle": "BEST Brașov | Departments",
     "titleStart": "Our",
     "titleHighlight": "Departments",
     "subtitle": "Explore our four departments and see which one fits you best. Tap any card to see what happens behind the scenes!",
@@ -166,7 +166,7 @@
 
   "_SECTION_4": "---------------- 4. MANAGEMENT / TEAM PAGE (Names & photos in managementData.js) ----------------",
   "managementPage": {
-    "pageTitle": "Management | BEST Brașov",
+    "pageTitle": "BEST Brașov | Management  ",
     "titleStart": "Meet the",
     "titleHighlight": "Team",
     "subtitle": "The students working behind the scenes to turn every project into reality.",
@@ -185,7 +185,7 @@
 
   "_SECTION_5": "---------------- 5. PARTNERS PAGE (Logos & links in partnersData.js) ----------------",
   "partnersPage": {
-    "pageTitle": "Partners | BEST Brașov",
+    "pageTitle": "BEST Brașov | Partners",
     "titleStart": "Our",
     "titleHighlight": "Partners",
     "subtitle": "We thank the companies and institutions that support us in developing students and our local community.",
@@ -208,7 +208,7 @@
 
   "_SECTION_6": "---------------- 6. FAQ PAGE ----------------",
   "faqPage": {
-    "pageTitle": "FAQ | BEST Brașov",
+    "pageTitle": "BEST Brașov | FAQ",
     "titleStart": "Frequently Asked",
     "titleHighlight": "Questions",
     "subtitle": "Everything you need to know about joining our local group, traveling across Europe, and growing as a student.",
@@ -250,7 +250,7 @@
 
   "_SECTION_7": "---------------- 7. EVENTS PAGE & EVENTS DATA (Dates & images in eventsData.js) ----------------",
   "eventsPage": {
-    "pageTitle": "Events | BEST Brașov",
+    "pageTitle": "BEST Brașov | Events",
     "header": {
       "titleStart": "Explore Our ",
       "titleHighlight": "Events",
@@ -348,7 +348,7 @@
 
   "_SECTION_8": "---------------- 8. JOIN US & CONTACT PAGE ----------------",
   "joinUs": {
-    "pageTitle": "Join Us! | BEST Brașov",
+    "pageTitle": "BEST Brașov | Join Us!",
     "hero": {
       "badgeOpen": "Recruitments are",
       "badgeOpenStrong": "OPEN",

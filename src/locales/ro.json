@@ -33,7 +33,7 @@
 
   "_SECTIUNEA_2": "---------------- 2. PAGINA PRINCIPALA (HERO, CE ESTE BEST, CU CE NE OCUPAM, VALORI) ----------------",
   "hero": {
-    "pageTitle": "BEST Brașov",
+    "pageTitle": "BEST Brașov | Dezvoltăm studenți din 1997",
     "tag": "Board of European Students of Technology",
     "titleStart": "BEST",
     "titleHighlight": "Brașov",
@@ -129,7 +129,7 @@
 
   "_SECTIUNEA_3": "---------------- 3. PAGINA DEPARTAMENTE ----------------",
   "departmentsPage": {
-    "pageTitle": "Departamente | BEST Brașov",
+    "pageTitle": "BEST Brașov | Departamente",
     "titleStart": "Departamentele",
     "titleHighlight": "Noastre",
     "subtitle": "Descoperă cele patru departamente și vezi care ți se potrivește. Apasă pe orice card ca să afli ce se întâmplă în culise!",
@@ -166,7 +166,7 @@
 
   "_SECTIUNEA_4": "---------------- 4. PAGINA ECHIPA / MANAGEMENT (Nume si poze in managementData.js) ----------------",
   "managementPage": {
-    "pageTitle": "Echipa | BEST Brașov",
+    "pageTitle": "BEST Brașov | Echipa",
     "titleStart": "Cunoaște",
     "titleHighlight": "Echipa",
     "subtitle": "Studenții dedicați care lucrează în culise pentru a transforma fiecare proiect în realitate.",
@@ -185,7 +185,7 @@
 
   "_SECTIUNEA_5": "---------------- 5. PAGINA PARTENERI (Logouri si linkuri in partnersData.js) ----------------",
   "partnersPage": {
-    "pageTitle": "Parteneri | BEST Brașov",
+    "pageTitle": "BEST Brașov | Parteneri",
     "titleStart": "Partenerii",
     "titleHighlight": "Noștri",
     "subtitle": "Mulțumim companiilor și instituțiilor care ne susțin în dezvoltarea studenților și a comunității noastre.",
@@ -208,7 +208,7 @@
 
   "_SECTIUNEA_6": "---------------- 6. PAGINA INTREBARI FRECVENTE (FAQ) ----------------",
   "faqPage": {
-    "pageTitle": "Întrebări Frecvente | BEST Brașov",
+    "pageTitle": "BEST Brașov | FAQ",
     "titleStart": "Întrebări",
     "titleHighlight": "Frecvente",
     "subtitle": "Tot ce trebuie să știi despre cum intri în grupul nostru local, călătoriile prin Europa și experiența de voluntar.",
@@ -250,7 +250,7 @@
 
   "_SECTIUNEA_7": "---------------- 7. PAGINA EVENIMENTE & DATE EVENIMENTE (Zile calendar in eventsData.js) ----------------",
   "eventsPage": {
-    "pageTitle": "Evenimente | BEST Brașov",
+    "pageTitle": "BEST Brașov | Evenimente",
     "header": {
       "titleStart": "Descoperă ",
       "titleHighlight": "Evenimentele Noastre",
@@ -348,7 +348,7 @@
 
   "_SECTIUNEA_8": "---------------- 8. PAGINA ALATURA-TE (JOIN US) & CONTACT ----------------",
   "joinUs": {
-    "pageTitle": "Alătură-te! | BEST Brașov",
+    "pageTitle": "BEST Brașov | Alătură-te!",
     "hero": {
       "badgeOpen": "Recrutările sunt",
       "badgeOpenStrong": "DESCHISE",
