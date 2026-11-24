@@ -1,29 +1,28 @@
 import { motion } from "framer-motion";
 import { Phone, Mail } from "lucide-react";
 import { board, coordinators } from "../data/managementData";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const TeamCard = ({ member, delay, t }) => {
+const TeamCard = ({ member, t, priority = false }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
   const hasPhone = typeof member.phone === "string" && member.phone.trim() !== "";
   const phoneHref = hasPhone ? `tel:${member.phone.replace(/\s+/g, "")}` : "";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay }}
-      className="bg-white dark:bg-[#1e0404] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-rose-950/60 hover:shadow-xl dark:hover:shadow-[#4F0028]/20 transition-all duration-300 group flex flex-col h-full"
-    >
-      <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0 bg-gray-100 dark:bg-[#140202]">
-        <div className="absolute inset-0 bg-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 mix-blend-multiply" />
+    <div className="bg-white dark:bg-[#1e0404] rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-rose-950/60 lg:hover:shadow-xl dark:lg:hover:shadow-[#4F0028]/20 transition-shadow duration-300 group flex flex-col h-full">
+      <div className="h-80 sm:h-96 overflow-hidden relative flex-shrink-0 bg-gray-200/70 dark:bg-[#1a0305]">
+        <div className="hidden lg:block absolute inset-0 bg-[#4F0028]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 mix-blend-multiply" />
         <img
           src={member.image}
           alt={member.name}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           decoding="async"
-          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+          onLoad={() => setImgLoaded(true)}
+          className={`w-full h-full object-cover object-top lg:group-hover:scale-105 transition-[opacity,transform] duration-500 ${
+            imgLoaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       </div>
 
@@ -57,7 +56,7 @@ const TeamCard = ({ member, delay, t }) => {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -73,20 +72,20 @@ const Management = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 sm:mb-20">
           <motion.h1
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-black text-gray-900 dark:text-white sm:text-5xl mb-6 transition-colors"
+            className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-4"
           >
             {t("managementPage.titleStart")}{" "}
-            <span className="text-[#4F0028] dark:text-rose-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F0028] to-rose-500 dark:from-rose-300 dark:to-rose-500">
               {t("managementPage.titleHighlight")}
             </span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-            className="text-lg text-gray-600 dark:text-gray-300 transition-colors"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
           >
             {t("managementPage.subtitle")}
           </motion.p>
@@ -106,7 +105,7 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.06} t={t} />
+                <TeamCard member={member} t={t} priority={index < 2} />
               </div>
             ))}
           </div>
@@ -126,7 +125,7 @@ const Management = () => {
                 key={index}
                 className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-22px)]"
               >
-                <TeamCard member={member} delay={index * 0.06} t={t} />
+                <TeamCard member={member} t={t} />
               </div>
             ))}
           </div>

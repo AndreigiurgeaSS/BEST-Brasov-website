@@ -152,21 +152,20 @@ const Departments = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
           <motion.h1
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-6 transition-colors"
+            className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-4"
           >
             {t("departmentsPage.titleStart")}{" "}
-            <span className="text-[#4F0028] dark:text-rose-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F0028] to-rose-500 dark:from-rose-300 dark:to-rose-500">
               {t("departmentsPage.titleHighlight")}
             </span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.16 }}
-            className="text-lg text-gray-600 dark:text-gray-300 transition-colors"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
           >
             {t("departmentsPage.subtitle")}
           </motion.p>

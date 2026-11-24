@@ -462,28 +462,107 @@ const TestimonialCard = ({ t }) => (
   </div>
 );
 
-// ─── Carusel nativ CSS (60fps, fără hover, fără lag) — STRICT MOBIL ──────────
+// ─── Carusel nativ CSS cu LOOP INFINIT continuu (60fps, fără hover) — STRICT MOBIL ──
 const MobileTestimonialsCarousel = ({ testimonials }) => {
   const scrollRef = useRef(null);
+  const settleTimerRef = useRef(null);
+  const isTeleportingRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleScroll = () => {
+  const N = testimonials.length;
+  // 3 copii identice => glisare infinită continuă spre stânga și dreapta fără capăt
+  const loopedItems = [...testimonials, ...testimonials, ...testimonials];
+
+  const getStride = useCallback(() => {
     const el = scrollRef.current;
-    if (!el || !el.firstElementChild) return;
-    const cardWidth = el.firstElementChild.offsetWidth + 16;
-    const idx = Math.round(el.scrollLeft / cardWidth);
-    setActiveIndex(Math.max(0, Math.min(idx, testimonials.length - 1)));
+    if (!el || !el.firstElementChild) return 0;
+    return el.firstElementChild.offsetWidth + 16; // card + gap-4
+  }, []);
+
+  // Pornește centrat exact pe primul card din setul din mijloc
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || N === 0) return;
+
+    const initPosition = () => {
+      const stride = getStride();
+      if (stride > 0) {
+        el.scrollLeft = N * stride;
+      }
+    };
+
+    initPosition();
+    window.addEventListener("resize", initPosition);
+    return () => {
+      window.removeEventListener("resize", initPosition);
+      if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
+    };
+  }, [N, getStride]);
+
+  const recenterSilently = useCallback(() => {
+    const el = scrollRef.current;
+    const stride = getStride();
+    if (!el || !stride || N === 0) return;
+
+    const setWidth = N * stride;
+    if (el.scrollLeft < setWidth * 0.5 || el.scrollLeft >= setWidth * 1.5) {
+      isTeleportingRef.current = true;
+      const offset = el.scrollLeft < setWidth * 0.5 ? setWidth : -setWidth;
+      el.style.scrollSnapType = "none";
+      el.scrollLeft += offset;
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.style.scrollSnapType = "";
+        }
+        isTeleportingRef.current = false;
+      });
+    }
+  }, [N, getStride]);
+
+  const handleScroll = () => {
+    if (isTeleportingRef.current) return;
+    const el = scrollRef.current;
+    const stride = getStride();
+    if (!el || !stride || N === 0) return;
+
+    const rawIdx = Math.round(el.scrollLeft / stride);
+    setActiveIndex(mod(rawIdx, N));
+
+    // Guard instant la swipe foarte rapid spre margini
+    const setWidth = N * stride;
+    if (el.scrollLeft < stride * 0.6 || el.scrollLeft > setWidth * 2 + stride * (N - 1.6)) {
+      recenterSilently();
+      return;
+    }
+
+    if (settleTimerRef.current) clearTimeout(settleTimerRef.current);
+    settleTimerRef.current = setTimeout(recenterSilently, 140);
   };
 
-  const scrollToCard = (idx) => {
+  const scrollToRawIndex = (targetRawIdx, realIdx) => {
     const el = scrollRef.current;
-    if (!el || !el.children[idx]) return;
-    setActiveIndex(idx);
-    el.children[idx].scrollIntoView({
+    const stride = getStride();
+    if (!el || !stride) return;
+
+    setActiveIndex(realIdx);
+    el.scrollTo({
+      left: targetRawIdx * stride,
       behavior: "smooth",
-      inline: "center",
-      block: "nearest",
     });
+  };
+
+  const scrollToRealIndex = (targetRealIdx) => {
+    const el = scrollRef.current;
+    const stride = getStride();
+    if (!el || !stride || N === 0) return;
+
+    const currentRawIdx = Math.round(el.scrollLeft / stride);
+    const currentRealIdx = mod(currentRawIdx, N);
+    let diff = targetRealIdx - currentRealIdx;
+    if (diff > N / 2) diff -= N;
+    if (diff < -N / 2) diff += N;
+
+    scrollToRawIndex(currentRawIdx + diff, targetRealIdx);
   };
 
   return (
@@ -491,17 +570,18 @@ const MobileTestimonialsCarousel = ({ testimonials }) => {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-[calc(50%-min(42vw,170px))] pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {testimonials.map((item, idx) => {
-          const isActive = idx === activeIndex;
+        {loopedItems.map((item, idx) => {
+          const realIdx = mod(idx, N);
+          const isActive = realIdx === activeIndex;
           return (
             <button
-              key={item.id || idx}
+              key={`${item.id || realIdx}-${idx}`}
               type="button"
-              onClick={() => scrollToCard(idx)}
+              onClick={() => scrollToRawIndex(idx, realIdx)}
               className={`snap-center flex-shrink-0 w-[84vw] max-w-[340px] ${item.bgColor} p-6 rounded-[1.75rem] shadow-lg text-left flex flex-col justify-between transition-transform duration-200 cursor-pointer ${
-                isActive ? "scale-100 ring-2 ring-rose-400/50" : "scale-[0.97] opacity-85"
+                isActive ? "scale-100 ring-2 ring-rose-400/50" : "scale-[0.96] opacity-85"
               }`}
             >
               <p className="text-white/95 font-medium text-sm leading-relaxed mb-6">
@@ -533,7 +613,7 @@ const MobileTestimonialsCarousel = ({ testimonials }) => {
           <button
             key={idx}
             type="button"
-            onClick={() => scrollToCard(idx)}
+            onClick={() => scrollToRealIndex(idx)}
             aria-label={`Testimonial ${idx + 1}`}
             className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
               idx === activeIndex
@@ -919,7 +999,7 @@ const JoinUs = () => {
             </p>
           </div>
 
-          {/* Mobil: Carusel nativ cu Snap + Tap (0 lag, fără hover) */}
+          {/* Mobil: Carusel nativ cu Loop Infinit + Tap (0 lag, fără hover) */}
           <MobileTestimonialsCarousel
             testimonials={[...testimonialsRow1, ...testimonialsRow2]}
           />
