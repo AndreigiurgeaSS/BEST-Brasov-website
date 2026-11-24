@@ -47,12 +47,14 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   );
 };
 
-// ── Split-Track ArcWheel cu Timer + Buton X de Anulare ───────────────────────
+// ── Split-Track ArcWheel (Strict on drag + tap pe laptop și telefon) ──────────
 const ARC_CX = 48;
 const ARC_CY = 135;
-const ARC_R = 138;
-const SPREAD = 27;
+const ARC_R = 136;
+const RING_SEGMENTS = 14;
+const SPREAD = 360 / RING_SEGMENTS;
 const DRAG_PX = 32;
+const DEAD_ZONE_PX = 10;
 const SETTLE_MS = 1600;
 
 function mod(n, m) {
@@ -70,6 +72,23 @@ function describeArcSegment(cx, cy, r, startDeg, endDeg) {
   const largeArc = Math.abs(endDeg - startDeg) <= 180 ? "0" : "1";
   return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
 }
+
+const ALL_RING_SEGMENTS = Array.from({ length: RING_SEGMENTS }, (_, i) => {
+  const centerDeg = i * SPREAD;
+  const halfSpan = SPREAD * 0.36;
+  return {
+    id: i,
+    d: describeArcSegment(ARC_CX, ARC_CY, ARC_R, centerDeg - halfSpan, centerDeg + halfSpan),
+  };
+});
+
+const CENTER_HIGHLIGHT_PATH = describeArcSegment(
+  ARC_CX,
+  ARC_CY,
+  ARC_R,
+  -(SPREAD * 0.36),
+  SPREAD * 0.36
+);
 
 const ArcWheel = () => {
   const { t, i18n } = useTranslation();
@@ -144,29 +163,50 @@ const ArcWheel = () => {
     [pages]
   );
 
-  const [activeIdx, setActiveIdx] = useState(() => getIndexFromPath(location.pathname));
+  const [wheelStep, setWheelStep] = useState(() => getIndexFromPath(location.pathname));
   const [countdownMs, setCountdownMs] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
 
-  const activeIdxRef = useRef(activeIdx);
+  const wheelStepRef = useRef(wheelStep);
   const wheelRef = useRef(null);
   const dragging = useRef(false);
+  const activePointerId = useRef(null);
   const isInteracting = useRef(false);
   const startY = useRef(0);
-  const startIdx = useRef(0);
+  const startStep = useRef(0);
   const movedPx = useRef(0);
+  const lastDragEndAt = useRef(0);
   const commitTimer = useRef(null);
   const countdownInterval = useRef(null);
+  const autoScrollTimer = useRef(null);
+
+  const activeIdx = mod(wheelStep, N);
 
   useEffect(() => {
-    activeIdxRef.current = activeIdx;
-  }, [activeIdx]);
+    wheelStepRef.current = wheelStep;
+  }, [wheelStep]);
 
+  const snapWheelToIndex = useCallback(
+    (targetIdx) => {
+      const currentIdx = mod(wheelStepRef.current, N);
+      let diff = targetIdx - currentIdx;
+      if (diff > N / 2) diff -= N;
+      if (diff < -N / 2) diff += N;
+      if (diff !== 0) {
+        const nextStep = wheelStepRef.current + diff;
+        wheelStepRef.current = nextStep;
+        setWheelStep(nextStep);
+      }
+    },
+    [N]
+  );
+
+  // Sincronizare când se schimbă ruta din Navbar
   useEffect(() => {
     if (!isInteracting.current) {
-      setActiveIdx(getIndexFromPath(location.pathname));
+      snapWheelToIndex(getIndexFromPath(location.pathname));
     }
-  }, [location.pathname, getIndexFromPath]);
+  }, [location.pathname, getIndexFromPath, snapWheelToIndex]);
 
   const clearTimers = useCallback(() => {
     if (commitTimer.current) {
@@ -181,22 +221,27 @@ const ArcWheel = () => {
     setCountdownMs(0);
   }, []);
 
-  // ── Butonul X: oprește instant navigarea și revine la pagina curentă ──
+  const resetDragState = useCallback(() => {
+    dragging.current = false;
+    activePointerId.current = null;
+  }, []);
+
+  // ── Butonul X: oprește instant navigarea și readuce roata la pagina curentă ──
   const handleCancelNavigation = useCallback(
     (e) => {
       e?.stopPropagation();
       clearTimers();
+      resetDragState();
       isInteracting.current = false;
-      const currentIdx = getIndexFromPath(location.pathname);
-      activeIdxRef.current = currentIdx;
-      setActiveIdx(currentIdx);
+      snapWheelToIndex(getIndexFromPath(location.pathname));
     },
-    [clearTimers, getIndexFromPath, location.pathname]
+    [clearTimers, resetDragState, snapWheelToIndex, getIndexFromPath, location.pathname]
   );
 
   const commitNavigation = useCallback(
     (targetIdx) => {
       clearTimers();
+      resetDragState();
       isInteracting.current = false;
       const targetPath = pages[targetIdx].path;
 
@@ -205,14 +250,15 @@ const ArcWheel = () => {
         navigate(targetPath);
       }
 
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current);
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setTimeout(() => {
+        autoScrollTimer.current = setTimeout(() => {
           window.isAutoScrolling = false;
         }, 900);
       }, 60);
     },
-    [clearTimers, navigate, location.pathname, pages]
+    [clearTimers, resetDragState, navigate, location.pathname, pages]
   );
 
   const scheduleCommit = useCallback(
@@ -234,74 +280,92 @@ const ArcWheel = () => {
     [clearTimers, commitNavigation]
   );
 
-  useEffect(() => clearTimers, [clearTimers]);
+  useEffect(() => {
+    return () => {
+      clearTimers();
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current);
+    };
+  }, [clearTimers]);
 
-  // Mouse drag doar pe desktop (pe mobil lăsăm scroll-ul nativ liber!)
-  const onMouseDown = useCallback(
+  // ── Pointer Events unificate (Touch + Mouse Drag, fără scroll/wheel) ──
+  const onPointerDown = useCallback(
     (e) => {
+      if (e.button && e.button !== 0) return;
+      if (e.target.closest?.('[data-cancel-btn="true"]')) return;
+
       clearTimers();
       dragging.current = true;
-      isInteracting.current = true;
+      activePointerId.current = e.pointerId;
       movedPx.current = 0;
       startY.current = e.clientY;
-      startIdx.current = activeIdxRef.current;
+      startStep.current = wheelStepRef.current;
     },
     [clearTimers]
   );
 
-  const onMouseMove = useCallback(
+  const onPointerMove = useCallback((e) => {
+    if (!dragging.current || e.pointerId !== activePointerId.current) return;
+    const delta = startY.current - e.clientY;
+    movedPx.current = Math.max(movedPx.current, Math.abs(delta));
+    if (movedPx.current < DEAD_ZONE_PX) return;
+
+    isInteracting.current = true;
+    const steps = Math.round(delta / DRAG_PX);
+    const nextStep = startStep.current + steps;
+    if (nextStep !== wheelStepRef.current) {
+      wheelStepRef.current = nextStep;
+      setWheelStep(nextStep);
+    }
+  }, []);
+
+  const finishPointerDrag = useCallback(
     (e) => {
       if (!dragging.current) return;
-      const delta = startY.current - e.clientY;
-      movedPx.current = Math.max(movedPx.current, Math.abs(delta));
-      if (Math.abs(delta) < 8) return;
+      if (e && e.pointerId !== undefined && e.pointerId !== activePointerId.current) return;
 
-      const steps = Math.round(delta / DRAG_PX);
-      const nextIdx = mod(startIdx.current + steps, N);
-      if (nextIdx !== activeIdxRef.current) {
-        activeIdxRef.current = nextIdx;
-        setActiveIdx(nextIdx);
+      const didDrag = movedPx.current >= DEAD_ZONE_PX;
+      resetDragState();
+
+      if (didDrag) {
+        lastDragEndAt.current = Date.now();
+        const targetIdx = mod(wheelStepRef.current, N);
+        const currentUrlIdx = getIndexFromPath(location.pathname);
+
+        if (targetIdx !== currentUrlIdx) {
+          scheduleCommit(targetIdx, SETTLE_MS);
+        } else {
+          isInteracting.current = false;
+        }
       }
     },
-    [N]
+    [resetDragState, N, getIndexFromPath, location.pathname, scheduleCommit]
   );
 
-  const onMouseUp = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (movedPx.current >= 8) {
-      scheduleCommit(activeIdxRef.current, SETTLE_MS);
-    } else {
-      isInteracting.current = false;
-    }
-  }, [scheduleCommit]);
-
   useEffect(() => {
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", finishPointerDrag);
+    window.addEventListener("pointercancel", finishPointerDrag);
+    window.addEventListener("blur", resetDragState);
     return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", finishPointerDrag);
+      window.removeEventListener("pointercancel", finishPointerDrag);
+      window.removeEventListener("blur", resetDragState);
     };
-  }, [onMouseMove, onMouseUp]);
+  }, [onPointerMove, finishPointerDrag, resetDragState]);
 
-  // Scroll wheel pe desktop
+  // Lock suplimentar pe touchmove strict în interiorul roții (nu blochează tap-urile)
   useEffect(() => {
     const el = wheelRef.current;
     if (!el) return;
-    const handleWheel = (e) => {
-      if (window.innerWidth < 1024) return;
-      e.preventDefault();
-      const dir = e.deltaY > 0 ? 1 : -1;
-      isInteracting.current = true;
-      const nextIdx = mod(activeIdxRef.current + dir, N);
-      activeIdxRef.current = nextIdx;
-      setActiveIdx(nextIdx);
-      scheduleCommit(nextIdx, SETTLE_MS);
+    const lockTouchScroll = (e) => {
+      if (dragging.current && e.cancelable) {
+        e.preventDefault();
+      }
     };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, [N, scheduleCommit]);
+    el.addEventListener("touchmove", lockTouchScroll, { passive: false });
+    return () => el.removeEventListener("touchmove", lockTouchScroll);
+  }, []);
 
   const visibleOffsets = [-3, -2, -1, 0, 1, 2, 3];
   const activePage = pages[activeIdx];
@@ -310,47 +374,69 @@ const ArcWheel = () => {
   return (
     <div
       ref={wheelRef}
-      onMouseDown={onMouseDown}
-      className="relative select-none touch-pan-y lg:touch-none lg:cursor-grab lg:active:cursor-grabbing"
+      onPointerDown={onPointerDown}
+      onDragStart={(e) => e.preventDefault()}
+      className="relative select-none touch-none cursor-grab active:cursor-grabbing"
       style={{ width: "310px", height: "270px", flexShrink: 0 }}
     >
-      {/* ── Arc SVG Secționat (7 segmente) ── */}
+      {/* ── Arc SVG Secționat care se rotește fizic odată cu textele ── */}
       <svg
         viewBox="0 0 310 270"
         width="310"
         height="270"
         className="absolute inset-0 overflow-visible pointer-events-none"
       >
-        {visibleOffsets.map((offset) => {
-          const centerDeg = offset * SPREAD;
-          const halfSpan = SPREAD * 0.36;
-          const d = describeArcSegment(
-            ARC_CX,
-            ARC_CY,
-            ARC_R,
-            centerDeg - halfSpan,
-            centerDeg + halfSpan
-          );
-          const isCenter = offset === 0;
-          return (
-            <path
-              key={offset}
-              d={d}
-              fill="none"
-              stroke={isCenter ? "#ffffff" : "rgba(255,255,255,0.22)"}
-              strokeWidth={isCenter ? "3.2" : "1.8"}
-              strokeLinecap="round"
-              opacity={isCenter ? 1 : Math.max(0.2, 0.75 - Math.abs(offset) * 0.18)}
-            />
-          );
-        })}
+        <defs>
+          <linearGradient id="arcFadeGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="18%" stopColor="white" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="white" stopOpacity="1" />
+            <stop offset="82%" stopColor="white" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <mask id="arcVisibleMask">
+            <rect x={ARC_CX + 18} y="4" width="200" height="262" fill="url(#arcFadeGrad)" />
+          </mask>
+        </defs>
+
+        {/* Inelul secționat rotativ */}
+        <g mask="url(#arcVisibleMask)">
+          <g
+            style={{
+              transform: `rotate(${-wheelStep * SPREAD}deg)`,
+              transformOrigin: `${ARC_CX}px ${ARC_CY}px`,
+              transition: "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            {ALL_RING_SEGMENTS.map((seg) => (
+              <path
+                key={seg.id}
+                d={seg.d}
+                fill="none"
+                stroke="rgba(255,255,255,0.26)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            ))}
+          </g>
+        </g>
+
+        {/* Segmentul central fix (evidențiază pagina activă) */}
+        <path
+          d={CENTER_HIGHLIGHT_PATH}
+          fill="none"
+          stroke={isCountingDown ? "#34d399" : "#ffffff"}
+          strokeWidth="3.4"
+          strokeLinecap="round"
+          className="transition-colors duration-200"
+        />
 
         {/* Punct discret pe interiorul arcului */}
         <circle
           cx={ARC_CX + ARC_R - 18}
           cy={ARC_CY}
           r="2.5"
-          fill="rgba(255,255,255,0.65)"
+          fill={isCountingDown ? "#34d399" : "rgba(255,255,255,0.7)"}
         />
       </svg>
 
@@ -363,19 +449,17 @@ const ArcWheel = () => {
           {isCountingDown ? (
             <motion.div
               key="timer-active"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.92 }}
               transition={{ duration: 0.15 }}
               className="flex flex-col items-end gap-2"
             >
-              <div className="inline-flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-full bg-black/45 border border-white/20 shadow-lg">
-                {/* Numărătoare inversă */}
+              <div className="inline-flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-full bg-black/50 border border-white/20 shadow-lg">
                 <span className="text-[11px] font-black tabular-nums text-white">
                   {(countdownMs / 1000).toFixed(1)}s
                 </span>
 
-                {/* Bară mini de progres */}
                 <span className="w-8 h-1.5 rounded-full bg-white/15 overflow-hidden">
                   <span
                     className="block h-full bg-emerald-400 rounded-full"
@@ -383,18 +467,18 @@ const ArcWheel = () => {
                   />
                 </span>
 
-                {/* Buton X evident pentru a anula schimbarea paginii */}
+                {/* Buton X vizibil pentru a opri instant navigarea */}
                 <button
                   type="button"
+                  data-cancel-btn="true"
                   onClick={handleCancelNavigation}
-                  onMouseDown={(e) => e.stopPropagation()}
                   aria-label={isRO ? "Anulează navigarea" : "Cancel navigation"}
-                  className="w-6 h-6 rounded-full bg-rose-500 hover:bg-rose-400 active:scale-90 text-white flex items-center justify-center shadow-md ring-2 ring-white/30 transition-transform cursor-pointer"
+                  className="w-7 h-7 rounded-full bg-rose-500 hover:bg-rose-400 active:scale-90 text-white flex items-center justify-center shadow-md ring-2 ring-white/35 transition-transform cursor-pointer"
                 >
-                  <X size={13} strokeWidth={3} />
+                  <X size={14} strokeWidth={3} />
                 </button>
               </div>
-              <p className="text-[10px] font-semibold text-rose-200/80">
+              <p className="text-[10px] font-semibold text-rose-200/85">
                 {isRO ? "Apasă X pentru a anula" : "Tap X to cancel"}
               </p>
             </motion.div>
@@ -433,11 +517,18 @@ const ArcWheel = () => {
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (movedPx.current >= 8) return;
+              if (Date.now() - lastDragEndAt.current < 250) return;
+
+              if (isCenter) {
+                commitNavigation(idx);
+                return;
+              }
+
               isInteracting.current = true;
-              activeIdxRef.current = idx;
-              setActiveIdx(idx);
-              scheduleCommit(idx, SETTLE_MS);
+              const nextStep = wheelStepRef.current + offset;
+              wheelStepRef.current = nextStep;
+              setWheelStep(nextStep);
+              scheduleCommit(mod(nextStep, N), SETTLE_MS);
             }}
             style={{
               position: "absolute",

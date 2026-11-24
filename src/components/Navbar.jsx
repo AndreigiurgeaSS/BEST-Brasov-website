@@ -499,22 +499,25 @@ const Navbar = () => {
         </div>
 
         {/* Mini-notificare 2s când se comută Eco Mode */}
-        <AnimatePresence>
-          {ecoToast && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="flex justify-center mt-2 px-4 pointer-events-none"
-            >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gray-950/92 text-white text-xs font-bold shadow-lg border border-white/15">
-                <Leaf size={13} className={isEcoMode ? "text-emerald-400" : "text-rose-300"} />
-                <span>{ecoToast}</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+<AnimatePresence>
+  {ecoToast && (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="flex justify-center mt-2.5 px-4 pointer-events-none"
+    >
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#4F0028] dark:bg-[#1a0308] text-white text-xs font-bold shadow-[0_8px_24px_rgba(0,0,0,0.28)] border border-white/20">
+        <Leaf
+          size={14}
+          className={isEcoMode ? "text-emerald-300" : "text-rose-300"}
+        />
+        <span>{ecoToast}</span>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
       </header>
 
       {/* ── Buton Plutitor Ridicat pe linia albastră (Thumb Zone, doar mobil & tabletă) ── */}
