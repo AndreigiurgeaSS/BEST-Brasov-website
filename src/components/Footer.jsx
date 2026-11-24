@@ -1,4 +1,4 @@
-import { Mail, Phone, Check, Copy, X } from "lucide-react";
+import { Mail, Phone, Check, Copy, X, Compass } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,7 +47,7 @@ const CopyableContact = ({ label, value, displayValue, Icon, copiedText }) => {
   );
 };
 
-// ── Split-Track ArcWheel (Strict on drag + tap pe laptop și telefon) ──────────
+// ── Split-Track ArcWheel (Click/Tap-to-Activate -> Drag Locked + Cancel X) ───
 const ARC_CX = 48;
 const ARC_CY = 135;
 const ARC_R = 136;
@@ -163,6 +163,7 @@ const ArcWheel = () => {
     [pages]
   );
 
+  const [isActivated, setIsActivated] = useState(false);
   const [wheelStep, setWheelStep] = useState(() => getIndexFromPath(location.pathname));
   const [countdownMs, setCountdownMs] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
@@ -201,7 +202,6 @@ const ArcWheel = () => {
     [N]
   );
 
-  // Sincronizare când se schimbă ruta din Navbar
   useEffect(() => {
     if (!isInteracting.current) {
       snapWheelToIndex(getIndexFromPath(location.pathname));
@@ -226,16 +226,48 @@ const ArcWheel = () => {
     activePointerId.current = null;
   }, []);
 
-  // ── Butonul X: oprește instant navigarea și readuce roata la pagina curentă ──
-  const handleCancelNavigation = useCallback(
+  const deactivateWheel = useCallback(() => {
+    clearTimers();
+    resetDragState();
+    isInteracting.current = false;
+    setIsActivated(false);
+    snapWheelToIndex(getIndexFromPath(location.pathname));
+  }, [clearTimers, resetDragState, snapWheelToIndex, getIndexFromPath, location.pathname]);
+
+  // Tap în afara roții o dezactivează automat
+  useEffect(() => {
+    if (!isActivated) return;
+    const handleOutside = (e) => {
+      if (wheelRef.current && !wheelRef.current.contains(e.target)) {
+        deactivateWheel();
+      }
+    };
+    window.addEventListener("pointerdown", handleOutside);
+    return () => window.removeEventListener("pointerdown", handleOutside);
+  }, [isActivated, deactivateWheel]);
+
+  // Butonul X: dacă rulează timer-ul anulează navigarea; altfel dezactivează roata
+  const handleCancelOrClose = useCallback(
     (e) => {
       e?.stopPropagation();
-      clearTimers();
-      resetDragState();
-      isInteracting.current = false;
-      snapWheelToIndex(getIndexFromPath(location.pathname));
+      if (isCountingDown) {
+        clearTimers();
+        resetDragState();
+        isInteracting.current = false;
+        snapWheelToIndex(getIndexFromPath(location.pathname));
+      } else {
+        deactivateWheel();
+      }
     },
-    [clearTimers, resetDragState, snapWheelToIndex, getIndexFromPath, location.pathname]
+    [
+      isCountingDown,
+      clearTimers,
+      resetDragState,
+      snapWheelToIndex,
+      getIndexFromPath,
+      location.pathname,
+      deactivateWheel,
+    ]
   );
 
   const commitNavigation = useCallback(
@@ -243,6 +275,7 @@ const ArcWheel = () => {
       clearTimers();
       resetDragState();
       isInteracting.current = false;
+      setIsActivated(false);
       const targetPath = pages[targetIdx].path;
 
       window.isAutoScrolling = true;
@@ -287,9 +320,10 @@ const ArcWheel = () => {
     };
   }, [clearTimers]);
 
-  // ── Pointer Events unificate (Touch + Mouse Drag, fără scroll/wheel) ──
+  // Pointer Events active DOAR după ce utilizatorul a activat roata prin click/tap
   const onPointerDown = useCallback(
     (e) => {
+      if (!isActivated) return;
       if (e.button && e.button !== 0) return;
       if (e.target.closest?.('[data-cancel-btn="true"]')) return;
 
@@ -300,7 +334,7 @@ const ArcWheel = () => {
       startY.current = e.clientY;
       startStep.current = wheelStepRef.current;
     },
-    [clearTimers]
+    [isActivated, clearTimers]
   );
 
   const onPointerMove = useCallback((e) => {
@@ -342,6 +376,7 @@ const ArcWheel = () => {
   );
 
   useEffect(() => {
+    if (!isActivated) return;
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerup", finishPointerDrag);
     window.addEventListener("pointercancel", finishPointerDrag);
@@ -352,10 +387,11 @@ const ArcWheel = () => {
       window.removeEventListener("pointercancel", finishPointerDrag);
       window.removeEventListener("blur", resetDragState);
     };
-  }, [onPointerMove, finishPointerDrag, resetDragState]);
+  }, [isActivated, onPointerMove, finishPointerDrag, resetDragState]);
 
-  // Lock suplimentar pe touchmove strict în interiorul roții (nu blochează tap-urile)
+  // Când e activată, blochează scroll-ul paginii pe touchmove strict în interiorul roții
   useEffect(() => {
+    if (!isActivated) return;
     const el = wheelRef.current;
     if (!el) return;
     const lockTouchScroll = (e) => {
@@ -365,7 +401,7 @@ const ArcWheel = () => {
     };
     el.addEventListener("touchmove", lockTouchScroll, { passive: false });
     return () => el.removeEventListener("touchmove", lockTouchScroll);
-  }, []);
+  }, [isActivated]);
 
   const visibleOffsets = [-3, -2, -1, 0, 1, 2, 3];
   const activePage = pages[activeIdx];
@@ -376,9 +412,23 @@ const ArcWheel = () => {
       ref={wheelRef}
       onPointerDown={onPointerDown}
       onDragStart={(e) => e.preventDefault()}
-      className="relative select-none touch-none cursor-grab active:cursor-grabbing"
+      className={`relative select-none rounded-3xl transition-all duration-250 ${
+        isActivated
+          ? "touch-none cursor-grab active:cursor-grabbing bg-white/[0.04] ring-1 ring-white/20 shadow-[0_0_28px_rgba(255,255,255,0.06)]"
+          : "touch-pan-y cursor-pointer"
+      }`}
       style={{ width: "310px", height: "270px", flexShrink: 0 }}
     >
+      {/* Strat de protecție când roata e inactivă: lasă scroll-ul liber și activează roata DOAR la tap/click clar */}
+      {!isActivated && (
+        <button
+          type="button"
+          onClick={() => setIsActivated(true)}
+          aria-label={isRO ? "Activează roata de navigare" : "Activate navigation wheel"}
+          className="absolute inset-0 z-30 bg-transparent rounded-3xl touch-pan-y cursor-pointer focus:outline-none"
+        />
+      )}
+
       {/* ── Arc SVG Secționat care se rotește fizic odată cu textele ── */}
       <svg
         viewBox="0 0 310 270"
@@ -399,7 +449,6 @@ const ArcWheel = () => {
           </mask>
         </defs>
 
-        {/* Inelul secționat rotativ */}
         <g mask="url(#arcVisibleMask)">
           <g
             style={{
@@ -413,7 +462,7 @@ const ArcWheel = () => {
                 key={seg.id}
                 d={seg.d}
                 fill="none"
-                stroke="rgba(255,255,255,0.26)"
+                stroke={isActivated ? "rgba(255,255,255,0.34)" : "rgba(255,255,255,0.2)"}
                 strokeWidth="2"
                 strokeLinecap="round"
               />
@@ -421,17 +470,15 @@ const ArcWheel = () => {
           </g>
         </g>
 
-        {/* Segmentul central fix (evidențiază pagina activă) */}
         <path
           d={CENTER_HIGHLIGHT_PATH}
           fill="none"
           stroke={isCountingDown ? "#34d399" : "#ffffff"}
-          strokeWidth="3.4"
+          strokeWidth={isActivated ? "3.6" : "2.8"}
           strokeLinecap="round"
           className="transition-colors duration-200"
         />
 
-        {/* Punct discret pe interiorul arcului */}
         <circle
           cx={ARC_CX + ARC_R - 18}
           cy={ARC_CY}
@@ -440,7 +487,7 @@ const ArcWheel = () => {
         />
       </svg>
 
-      {/* ── Preview + Timer cu Buton X în concavitatea arcului ── */}
+      {/* ── Preview + Activare / Timer cu Buton X în concavitatea arcului ── */}
       <div
         className="absolute top-1/2 -translate-y-1/2 left-0 pr-3 text-right z-20"
         style={{ width: `${ARC_CX + ARC_R - 26}px` }}
@@ -455,7 +502,7 @@ const ArcWheel = () => {
               transition={{ duration: 0.15 }}
               className="flex flex-col items-end gap-2"
             >
-              <div className="inline-flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-full bg-black/50 border border-white/20 shadow-lg">
+              <div className="inline-flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-full bg-black/55 border border-white/25 shadow-lg">
                 <span className="text-[11px] font-black tabular-nums text-white">
                   {(countdownMs / 1000).toFixed(1)}s
                 </span>
@@ -467,11 +514,10 @@ const ArcWheel = () => {
                   />
                 </span>
 
-                {/* Buton X vizibil pentru a opri instant navigarea */}
                 <button
                   type="button"
                   data-cancel-btn="true"
-                  onClick={handleCancelNavigation}
+                  onClick={handleCancelOrClose}
                   aria-label={isRO ? "Anulează navigarea" : "Cancel navigation"}
                   className="w-7 h-7 rounded-full bg-rose-500 hover:bg-rose-400 active:scale-90 text-white flex items-center justify-center shadow-md ring-2 ring-white/35 transition-transform cursor-pointer"
                 >
@@ -484,19 +530,38 @@ const ArcWheel = () => {
             </motion.div>
           ) : (
             <motion.div
-              key={`hint-${activeIdx}`}
+              key={`hint-${activeIdx}-${isActivated ? "on" : "off"}`}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.18 }}
-              className="flex flex-col items-end gap-1 pointer-events-none"
+              className="flex flex-col items-end gap-1.5"
             >
-              <p className="text-xs font-extrabold text-white/95 leading-tight tracking-wide">
+              <p className="text-xs font-extrabold text-white/95 leading-tight tracking-wide pointer-events-none">
                 {activePage.label}
               </p>
-              <p className="text-[11px] text-rose-100/65 dark:text-gray-400 leading-snug">
+              <p className="text-[11px] text-rose-100/65 dark:text-gray-400 leading-snug pointer-events-none">
                 {activePage.hint}
               </p>
+
+              {!isActivated ? (
+                <span className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-[10px] font-bold text-rose-100 tracking-wide pointer-events-none">
+                  <Compass size={11} className="text-rose-300" />
+                  <span>{isRO ? "Apasă pentru a roti" : "Tap to spin"}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  data-cancel-btn="true"
+                  onClick={handleCancelOrClose}
+                  className="mt-1 inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-[10px] font-bold text-white cursor-pointer active:scale-95 transition-all"
+                >
+                  <span>{isRO ? "Trage sau apasă" : "Drag or tap"}</span>
+                  <span className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center">
+                    <X size={10} strokeWidth={3} />
+                  </span>
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -515,8 +580,10 @@ const ArcWheel = () => {
           <button
             key={offset}
             type="button"
+            disabled={!isActivated}
             onClick={(e) => {
               e.stopPropagation();
+              if (!isActivated) return;
               if (Date.now() - lastDragEndAt.current < 250) return;
 
               if (isCenter) {
@@ -539,7 +606,7 @@ const ArcWheel = () => {
               fontWeight: isCenter ? 800 : 500,
               color: `rgba(255,255,255,${opacity})`,
             }}
-            className="whitespace-nowrap cursor-pointer tracking-wide transition-opacity duration-200 py-1.5 px-1 text-left"
+            className="whitespace-nowrap cursor-pointer tracking-wide transition-opacity duration-200 py-1.5 px-1 text-left disabled:pointer-events-none"
           >
             {isCenter ? `> ${pages[idx].label}` : pages[idx].label}
           </button>
@@ -598,11 +665,11 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#320019] dark:from-[#1d0208] dark:to-[#0f0103] text-gray-200 pt-14 pb-28 lg:pb-8 border-t border-white/10 dark:border-rose-950/60 transition-colors duration-300">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-[#4F0028] to-[#320019] dark:from-[#1d0208] dark:to-[#0f0103] text-gray-200 pt-14 pb-24 lg:pb-8 border-t border-white/10 dark:border-rose-950/60 transition-colors duration-300">
       {/* Watermark uriaș BEST în fundal */}
       <div
         aria-hidden="true"
-        className="pointer-events-none select-none absolute bottom-10 lg:bottom-2 left-1/2 -translate-x-1/2 text-[110px] sm:text-[180px] lg:text-[230px] font-black tracking-tighter text-white/[0.035] leading-none whitespace-nowrap"
+        className="pointer-events-none select-none absolute bottom-16 lg:bottom-2 left-1/2 -translate-x-1/2 text-[110px] sm:text-[180px] lg:text-[230px] font-black tracking-tighter text-white/[0.035] leading-none whitespace-nowrap"
       >
         BEST
       </div>
