@@ -162,10 +162,18 @@ const LanguageSwitch = ({ lang, onToggle, compact = false, insideCapsule = false
         }`}
       />
       <div className="absolute inset-0 grid grid-cols-2 items-center text-[10px] font-black tracking-wider">
-        <span className={`text-center transition-colors duration-200 ${!isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"}`}>
+        <span
+          className={`text-center transition-colors duration-200 ${
+            !isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
+          }`}
+        >
           EN
         </span>
-        <span className={`text-center transition-colors duration-200 ${isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"}`}>
+        <span
+          className={`text-center transition-colors duration-200 ${
+            isRO ? "text-[#4F0028] dark:text-white" : "text-white/65"
+          }`}
+        >
           RO
         </span>
       </div>
@@ -208,6 +216,19 @@ const EcoModeButton = ({ isEcoMode, showAutoPulse, onClick, isRO }) => {
   );
 };
 
+// Sincronizează <meta name="theme-color"> și fundalul <html> cu tema activă a site-ului
+function syncBrowserChromeTheme(dark) {
+  const root = document.documentElement;
+  root.style.backgroundColor = dark ? "#140202" : "#f9fafb";
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "theme-color";
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", dark ? "#140202" : "#4F0028");
+}
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -220,6 +241,7 @@ const Navbar = () => {
   const lastBurstTimeRef = useRef(0);
   const ecoToastTimerRef = useRef(null);
   const joinBtnRef = useRef(null);
+  const backdropRef = useRef(null);
   const location = useLocation();
 
   const { t, i18n } = useTranslation();
@@ -271,43 +293,36 @@ const Navbar = () => {
     setIsOpen(false);
   }, [location.pathname]);
 
-  // ── Scroll Lock complet pe mobil (îngheață complet pagina din spate) ──
+  // ── Scroll Lock lejer (fără position: fixed pe body => zero reflow lag) ──
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
 
     if (isOpen) {
-      const scrollY = window.scrollY;
-      body.dataset.scrollLockY = String(scrollY);
       html.style.overflow = "hidden";
       body.style.overflow = "hidden";
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.left = "0";
-      body.style.right = "0";
-      body.style.width = "100%";
-    } else if (body.dataset.scrollLockY !== undefined) {
-      const savedY = parseInt(body.dataset.scrollLockY || "0", 10);
+    } else {
       html.style.overflow = "";
       body.style.overflow = "";
-      body.style.position = "";
-      body.style.top = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
-      delete body.dataset.scrollLockY;
-      window.scrollTo(0, savedY);
     }
 
     return () => {
       html.style.overflow = "";
       body.style.overflow = "";
-      body.style.position = "";
-      body.style.top = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
     };
+  }, [isOpen]);
+
+  // Blochează touch-scroll-ul strict pe zona blurată din stânga meniului
+  useEffect(() => {
+    if (!isOpen) return;
+    const el = backdropRef.current;
+    if (!el) return;
+
+    const stopBackdropScroll = (e) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove", stopBackdropScroll, { passive: false });
+    return () => el.removeEventListener("touchmove", stopBackdropScroll);
   }, [isOpen]);
 
   useEffect(() => {
@@ -332,13 +347,17 @@ const Navbar = () => {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (
+    const shouldBeDark =
       savedTheme === "dark" ||
-      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      setIsDarkMode(true);
+      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    setIsDarkMode(shouldBeDark);
+    if (shouldBeDark) {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
+    syncBrowserChromeTheme(shouldBeDark);
   }, []);
 
   const toggleDarkMode = () => {
@@ -351,6 +370,7 @@ const Navbar = () => {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
+    syncBrowserChromeTheme(newMode);
   };
 
   const handleConfettiDone = useCallback(() => {
@@ -393,10 +413,11 @@ const Navbar = () => {
         />
       )}
 
-      {/* ── Top Navbar ── */}
+      {/* ── Top Navbar (pe mobil se ascunde fin când drawer-ul e deschis => ZERO logo dublat) ── */}
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-transform duration-300 will-change-transform pointer-events-none lg:pointer-events-auto
-          ${isVisible || isOpen ? "translate-y-0" : "-translate-y-full"}`}
+        className={`fixed top-0 left-0 w-full z-50 transition-[transform,opacity] duration-250 will-change-transform pointer-events-none lg:pointer-events-auto
+          ${isVisible || isOpen ? "translate-y-0" : "-translate-y-full"}
+          ${isOpen ? "opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto" : "opacity-100"}`}
       >
         <div className="px-3 pt-2.5 lg:p-0">
           <nav
@@ -499,34 +520,34 @@ const Navbar = () => {
         </div>
 
         {/* Mini-notificare 2s când se comută Eco Mode */}
-<AnimatePresence>
-  {ecoToast && (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="flex justify-center mt-2.5 px-4 pointer-events-none"
-    >
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#4F0028] dark:bg-[#1a0308] text-white text-xs font-bold shadow-[0_8px_24px_rgba(0,0,0,0.28)] border border-white/20">
-        <Leaf
-          size={14}
-          className={isEcoMode ? "text-emerald-300" : "text-rose-300"}
-        />
-        <span>{ecoToast}</span>
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
+        <AnimatePresence>
+          {ecoToast && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex justify-center mt-2.5 px-4 pointer-events-none"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#4F0028] dark:bg-[#1a0308] text-white text-xs font-bold shadow-[0_8px_24px_rgba(0,0,0,0.28)] border border-white/20">
+                <Leaf
+                  size={14}
+                  className={isEcoMode ? "text-emerald-300" : "text-rose-300"}
+                />
+                <span>{ecoToast}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* ── Buton Plutitor Ridicat pe linia albastră (Thumb Zone, doar mobil & tabletă) ── */}
+      {/* ── Buton Plutitor Compact în Colțul Jos-Dreapta (nu mai acoperă statisticile sau copyright-ul) ── */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label={isOpen ? "Close menu" : "Open menu"}
         aria-expanded={isOpen}
-        className={`lg:hidden fixed right-4 bottom-[5.25rem] z-[90] inline-flex items-center gap-2.5 pl-4 pr-3.5 py-3 rounded-full font-extrabold text-xs uppercase tracking-wider shadow-[0_10px_28px_rgba(0,0,0,0.38)] border active:scale-95 transition-transform duration-150 cursor-pointer select-none
+        className={`lg:hidden fixed right-4 bottom-4 sm:bottom-6 z-[90] inline-flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 rounded-full font-extrabold text-[11px] uppercase tracking-wider shadow-[0_10px_28px_rgba(0,0,0,0.35)] border active:scale-95 transition-transform duration-150 cursor-pointer select-none
           ${
             isOpen
               ? "bg-white text-[#4F0028] border-white/60"
@@ -542,22 +563,23 @@ const Navbar = () => {
             isOpen ? "bg-[#4F0028]/10 text-[#4F0028]" : "bg-white/15 text-rose-200"
           }`}
         >
-          {isOpen ? <X size={15} strokeWidth={2.5} /> : <Menu size={15} strokeWidth={2.5} />}
+          {isOpen ? <X size={14} strokeWidth={2.5} /> : <Menu size={14} strokeWidth={2.5} />}
         </span>
       </button>
 
-      {/* ── Side Drawer Fix + Backdrop fără blur laggy & fără scroll pe fundal ── */}
+      {/* ── Side Drawer Mobil cu Blur fin pe stânga & fundal 100% blocat la scroll ── */}
       <AnimatePresence>
         {isOpen && (
-          <div className="lg:hidden fixed inset-0 z-[80] touch-none overscroll-none">
-            {/* Backdrop: click/tap închide meniul, touch-none blochează scroll-ul din spate */}
+          <div className="lg:hidden fixed inset-0 z-[80]">
+            {/* Backdrop blurat: blochează touchmove pe fundal + închide meniul la tap */}
             <motion.div
+              ref={backdropRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/72 touch-none overscroll-none"
+              className="absolute inset-0 bg-black/62 backdrop-blur-sm touch-none overscroll-none"
             />
 
             <motion.aside
@@ -635,7 +657,7 @@ const Navbar = () => {
 
               <div
                 className="px-5 pt-4 border-t border-white/10"
-                style={{ paddingBottom: "calc(8.5rem + env(safe-area-inset-bottom))" }}
+                style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}
               >
                 <Link
                   to="/join"
