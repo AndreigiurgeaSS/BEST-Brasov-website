@@ -67,7 +67,7 @@ export const internalEvents = [
   {
     titleKey: "eventsData.internal.ai.title",
     descKey: "eventsData.internal.ai.desc",
-    image: "/images/events/AiRefacut.png",
+    image: "/images/events/AI.jpg",
     // date: "2026-12-12",
   },
 ];
